@@ -1,42 +1,108 @@
+/* ============================================================
+   GLOBAL STYLES – SCEI DESIGN SYSTEM v2
+   File: globals.css
+
+   MỤC ĐÍCH CHUNG:
+   - Khai báo toàn bộ Design Tokens (CSS Variables)
+   - Bridge tokens sang Tailwind thông qua @theme inline
+   - Hỗ trợ Light / Dark mode bằng cách override variables
+   - Là “single source of truth” cho màu sắc, spacing, typography
+
+   NGUYÊN TẮC SỬ DỤNG:
+   - Component KHÔNG hardcode màu
+   - Luôn dùng Tailwind class (bg-primary, text-muted-foreground…)
+   - globals.css chỉ định nghĩa token, không style component
+   ============================================================ */
+
+
+/* ============================================================
+   TAILWIND CORE IMPORTS
+   ============================================================ */
+
+/* Tailwind v4 engine */
 @import "tailwindcss";
+
+/* Animation presets cho dialog, accordion, toast, dropdown */
 @import "tw-animate-css";
 
+
+/* ============================================================
+   DARK MODE VARIANT
+   ============================================================
+   Cho phép dùng class:
+     dark:bg-background
+     dark:text-foreground
+
+   Khi `.dark` xuất hiện ở bất kỳ ancestor nào
+   (html, body, layout wrapper…)
+   ============================================================ */
 @custom-variant dark (&:is(.dark *));
 
+
+/* ============================================================
+   @theme inline – TOKEN BRIDGE
+   ============================================================
+   MỤC ĐÍCH:
+   - Map CSS variables → Tailwind tokens
+   - Dùng Tailwind utility thay vì var(--xxx)
+   - Tương thích shadcn/ui, radix, headless UI
+
+   LƯU Ý:
+   - KHÔNG khai báo màu mới tại đây
+   - CHỈ ánh xạ từ :root / .dark
+   ============================================================ */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
+  /* ---------- Core Surfaces ---------- */
+  --color-background: var(--background);        /* body, page */
+  --color-foreground: var(--foreground);        /* text mặc định */
+
+  /* ---------- Fonts ---------- */
+  --font-sans: var(--font-geist-sans);           /* font UI chính */
+  --font-mono: var(--font-geist-mono);           /* code, pre */
+
+  /* ---------- Card / Popover ---------- */
+  --color-card: var(--card);                     /* card, panel */
   --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
+  --color-popover: var(--popover);               /* dropdown */
+  --color-popover-foreground: var(--popover-foreground);
+
+  /* ---------- Brand Colors ---------- */
+  --color-primary: var(--primary);               /* CTA chính */
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);           /* CTA phụ */
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);                 /* highlight */
+  --color-accent-foreground: var(--accent-foreground);
+
+  /* ---------- Neutral / State ---------- */
+  --color-muted: var(--muted);                   /* bg phụ */
+  --color-muted-foreground: var(--muted-foreground);
+  --color-destructive: var(--destructive);       /* error */
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  /* ---------- Form ---------- */
+  --color-border: var(--border);                 /* border */
+  --color-input: var(--input);                   /* input */
+  --color-ring: var(--ring);                     /* focus ring */
+
+  /* ---------- Sidebar (Admin) ---------- */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* ---------- Charts ---------- */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* ---------- Radius System ---------- */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -45,9 +111,7 @@
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
 
-  /* ========================================
-     NEW: Semantic Color Extensions
-     ======================================== */
+  /* ---------- Semantic Colors ---------- */
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
   --color-success: var(--success);
@@ -55,9 +119,7 @@
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
 
-  /* ========================================
-     NEW: Typography Scale Tokens
-     ======================================== */
+  /* ---------- Typography Scale ---------- */
   --font-size-xs: var(--text-xs);
   --font-size-sm: var(--text-sm);
   --font-size-base: var(--text-base);
@@ -69,9 +131,7 @@
   --font-size-5xl: var(--text-5xl);
   --font-size-6xl: var(--text-6xl);
 
-  /* ========================================
-     NEW: Spacing Scale Tokens
-     ======================================== */
+  /* ---------- Spacing Scale ---------- */
   --spacing-1: var(--space-1);
   --spacing-2: var(--space-2);
   --spacing-3: var(--space-3);
@@ -81,126 +141,93 @@
   --spacing-12: var(--space-12);
   --spacing-16: var(--space-16);
 
-  /* ========================================
-     NEW: Shadow Tokens
-     ======================================== */
+  /* ---------- Shadow Tokens ---------- */
   --shadow-sm: var(--shadow-sm);
   --shadow-md: var(--shadow-md);
   --shadow-lg: var(--shadow-lg);
 }
 
-/* ============================================
-   SCEI DESIGN SYSTEM v2
-   Innovation Center Theme
-   ============================================ */
 
+/* ============================================================
+   LIGHT MODE – :root
+   ============================================================
+   Default theme cho toàn bộ hệ thống
+   ============================================================ */
 :root {
-  /* ========================================
-     RADIUS SYSTEM
-     Gov/Edu style: subtle, professional
-     ======================================== */
-  --radius-base: 0.5rem; /* 8px - more subtle than 10px */
+  /* ---------- Radius ---------- */
+  --radius-base: 0.5rem;
   --radius: var(--radius-base);
 
-  /* ========================================
-     CORE BRAND COLORS
-     Innovation Blue + Energy Orange
-     ======================================== */
-  --primary: oklch(0.45 0.15 250); /* Deep innovation blue */
-  --primary-foreground: oklch(0.99 0.005 270); /* Near-white with warmth */
-
-  --secondary: oklch(0.55 0.12 45); /* Energy orange */
+  /* ---------- Brand Colors ---------- */
+  --primary: oklch(0.45 0.15 250);
+  --primary-foreground: oklch(0.99 0.005 270);
+  --secondary: oklch(0.55 0.12 45);
   --secondary-foreground: oklch(0.99 0.005 270);
-
-  --accent: oklch(0.50 0.14 140); /* Success green for CTA */
+  --accent: oklch(0.50 0.14 140);
   --accent-foreground: oklch(0.99 0.005 270);
 
-  /* ========================================
-     NEUTRAL SCALE
-     Warm gray for professional feel
-     ======================================== */
-  --background: oklch(0.99 0.005 270); /* Warm white */
-  --foreground: oklch(0.15 0.01 270); /* Warm black */
+  /* ---------- Neutral ---------- */
+  --background: oklch(0.99 0.005 270);
+  --foreground: oklch(0.15 0.01 270);
+  --muted: oklch(0.97 0.01 270);
+  --muted-foreground: oklch(0.45 0.01 270);
 
-  --muted: oklch(0.97 0.01 270); /* Subtle background */
-  --muted-foreground: oklch(0.45 0.01 270); /* WCAG AAA compliant */
-
-  --card: oklch(1 0 0); /* Pure white for elevation */
+  /* ---------- Surface ---------- */
+  --card: oklch(1 0 0);
   --card-foreground: oklch(0.15 0.01 270);
-
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.15 0.01 270);
 
-  /* ========================================
-     BORDERS & INPUTS
-     Improved visibility from v1
-     ======================================== */
-  --border: oklch(0.85 0.01 270); /* More visible than 0.922 */
+  /* ---------- Form ---------- */
+  --border: oklch(0.85 0.01 270);
   --input: oklch(0.85 0.01 270);
-  --ring: oklch(0.45 0.15 250); /* Match primary for focus */
+  --ring: oklch(0.45 0.15 250);
 
-  /* ========================================
-     SEMANTIC COLORS
-     WCAG AAA compliant
-     ======================================== */
-  --destructive: oklch(0.55 0.22 25); /* Warm red */
+  /* ---------- Semantic ---------- */
+  --destructive: oklch(0.55 0.22 25);
   --destructive-foreground: oklch(0.99 0 0);
-
-  --warning: oklch(0.65 0.18 80); /* Amber */
+  --warning: oklch(0.65 0.18 80);
   --warning-foreground: oklch(0.20 0.02 80);
-
-  --success: oklch(0.50 0.16 145); /* Green */
+  --success: oklch(0.50 0.16 145);
   --success-foreground: oklch(0.99 0 0);
-
-  --info: oklch(0.55 0.14 230); /* Blue */
+  --info: oklch(0.55 0.14 230);
   --info-foreground: oklch(0.99 0 0);
 
-  /* ========================================
-     CHART COLORS
-     Accessible palette for data visualization
-     ======================================== */
-  --chart-1: oklch(0.50 0.16 250); /* Blue */
-  --chart-2: oklch(0.55 0.14 140); /* Green */
-  --chart-3: oklch(0.60 0.18 45); /* Orange */
-  --chart-4: oklch(0.52 0.20 300); /* Purple */
-  --chart-5: oklch(0.58 0.16 180); /* Teal */
+  /* ---------- Charts ---------- */
+  --chart-1: oklch(0.50 0.16 250);
+  --chart-2: oklch(0.55 0.14 140);
+  --chart-3: oklch(0.60 0.18 45);
+  --chart-4: oklch(0.52 0.20 300);
+  --chart-5: oklch(0.58 0.16 180);
 
-  /* ========================================
-     ADMIN SIDEBAR
-     Subtle distinction from main content
-     ======================================== */
-  --sidebar: oklch(0.97 0.01 270); /* Slightly darker than bg */
+  /* ---------- Sidebar ---------- */
+  --sidebar: oklch(0.97 0.01 270);
   --sidebar-foreground: oklch(0.15 0.01 270);
-  --sidebar-primary: oklch(0.45 0.15 250); /* Match primary */
+  --sidebar-primary: oklch(0.45 0.15 250);
   --sidebar-primary-foreground: oklch(0.99 0.005 270);
-  --sidebar-accent: oklch(0.92 0.01 270); /* Hover state */
+  --sidebar-accent: oklch(0.92 0.01 270);
   --sidebar-accent-foreground: oklch(0.15 0.01 270);
   --sidebar-border: oklch(0.85 0.01 270);
   --sidebar-ring: oklch(0.45 0.15 250);
 
-  /* ========================================
-     NEW: TYPOGRAPHY SYSTEM
-     Gov/Edu style: readable, professional
-     ======================================== */
-  --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
-    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
-    "Liberation Mono", monospace;
+  /* ---------- Typography ---------- */
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+  --font-serif: ui-serif, serif;
+  --font-mono: ui-monospace, monospace;
 
-  /* Font Sizes - Scale 1.25 (Major Third) */
-  --text-xs: 0.75rem; /* 12px */
-  --text-sm: 0.875rem; /* 14px */
-  --text-base: 1rem; /* 16px */
-  --text-lg: 1.125rem; /* 18px */
-  --text-xl: 1.25rem; /* 20px */
-  --text-2xl: 1.5rem; /* 24px */
-  --text-3xl: 1.875rem; /* 30px */
-  --text-4xl: 2.25rem; /* 36px */
-  --text-5xl: 3rem; /* 48px */
-  --text-6xl: 3.75rem; /* 60px */
+  /* ---------- Font Sizes ---------- */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+  --text-6xl: 3.75rem;
 
-  /* Line Heights */
+  /* ---------- Line Heights ---------- */
   --leading-none: 1;
   --leading-tight: 1.25;
   --leading-snug: 1.375;
@@ -208,7 +235,7 @@
   --leading-relaxed: 1.625;
   --leading-loose: 2;
 
-  /* Letter Spacing */
+  /* ---------- Letter Spacing ---------- */
   --tracking-tighter: -0.05em;
   --tracking-tight: -0.025em;
   --tracking-normal: 0;
@@ -216,35 +243,29 @@
   --tracking-wider: 0.05em;
   --tracking-widest: 0.1em;
 
-  /* Font Weights */
+  /* ---------- Font Weights ---------- */
   --font-normal: 400;
   --font-medium: 500;
   --font-semibold: 600;
   --font-bold: 700;
 
-  /* ========================================
-     NEW: SPACING SYSTEM
-     8px base, consistent rhythm
-     ======================================== */
+  /* ---------- Spacing ---------- */
   --space-0: 0;
-  --space-1: 0.25rem; /* 4px */
-  --space-2: 0.5rem; /* 8px - base */
-  --space-3: 0.75rem; /* 12px */
-  --space-4: 1rem; /* 16px */
-  --space-5: 1.25rem; /* 20px */
-  --space-6: 1.5rem; /* 24px */
-  --space-8: 2rem; /* 32px */
-  --space-10: 2.5rem; /* 40px */
-  --space-12: 3rem; /* 48px */
-  --space-16: 4rem; /* 64px */
-  --space-20: 5rem; /* 80px */
-  --space-24: 6rem; /* 96px */
-  --space-32: 8rem; /* 128px */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+  --space-32: 8rem;
 
-  /* ========================================
-     NEW: SHADOW SYSTEM
-     Subtle, professional depth
-     ======================================== */
+  /* ---------- Shadows ---------- */
   --shadow-sm: 0 1px 2px 0 oklch(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px oklch(0 0 0 / 0.1),
     0 2px 4px -2px oklch(0 0 0 / 0.1);
@@ -255,79 +276,39 @@
   --shadow-2xl: 0 25px 50px -12px oklch(0 0 0 / 0.25);
 }
 
-/* ============================================
+
+/* ============================================================
    DARK MODE
-   Adjusted for contrast and visibility
-   ============================================ */
-
+   ============================================================
+   Override token values khi `.dark` tồn tại
+   ============================================================ */
 .dark {
-  /* ========================================
-     CORE BRAND COLORS
-     Lighter for dark background contrast
-     ======================================== */
-  --primary: oklch(0.70 0.15 250); /* Lighter blue */
-  --primary-foreground: oklch(0.15 0.01 270); /* Dark text */
-
-  --secondary: oklch(0.65 0.12 45); /* Lighter orange */
+  --primary: oklch(0.70 0.15 250);
+  --primary-foreground: oklch(0.15 0.01 270);
+  --secondary: oklch(0.65 0.12 45);
   --secondary-foreground: oklch(0.15 0.01 270);
-
-  --accent: oklch(0.60 0.14 140); /* Lighter green */
+  --accent: oklch(0.60 0.14 140);
   --accent-foreground: oklch(0.15 0.01 270);
 
-  /* ========================================
-     NEUTRAL SCALE
-     Dark mode base colors
-     ======================================== */
-  --background: oklch(0.15 0.01 270); /* Warm dark */
-  --foreground: oklch(0.97 0.01 270); /* Warm white */
+  --background: oklch(0.15 0.01 270);
+  --foreground: oklch(0.97 0.01 270);
+  --muted: oklch(0.25 0.01 270);
+  --muted-foreground: oklch(0.65 0.01 270);
 
-  --muted: oklch(0.25 0.01 270); /* Subtle dark background */
-  --muted-foreground: oklch(0.65 0.01 270); /* Lighter for readability */
-
-  --card: oklch(0.20 0.01 270); /* Elevated surface */
+  --card: oklch(0.20 0.01 270);
   --card-foreground: oklch(0.97 0.01 270);
-
   --popover: oklch(0.20 0.01 270);
   --popover-foreground: oklch(0.97 0.01 270);
 
-  /* ========================================
-     BORDERS & INPUTS
-     Solid colors instead of opacity
-     ======================================== */
-  --border: oklch(0.30 0.01 270); /* More visible */
+  --border: oklch(0.30 0.01 270);
   --input: oklch(0.30 0.01 270);
-  --ring: oklch(0.70 0.15 250); /* Lighter for visibility */
+  --ring: oklch(0.70 0.15 250);
 
-  /* ========================================
-     SEMANTIC COLORS
-     Adjusted for dark background
-     ======================================== */
   --destructive: oklch(0.65 0.20 25);
-  --destructive-foreground: oklch(0.99 0 0);
-
   --warning: oklch(0.70 0.16 80);
-  --warning-foreground: oklch(0.15 0.02 80);
-
   --success: oklch(0.60 0.15 145);
-  --success-foreground: oklch(0.99 0 0);
-
   --info: oklch(0.65 0.13 230);
-  --info-foreground: oklch(0.99 0 0);
 
-  /* ========================================
-     CHART COLORS
-     Lightened for dark background
-     ======================================== */
-  --chart-1: oklch(0.60 0.16 250);
-  --chart-2: oklch(0.62 0.14 140);
-  --chart-3: oklch(0.68 0.17 45);
-  --chart-4: oklch(0.62 0.18 300);
-  --chart-5: oklch(0.65 0.15 180);
-
-  /* ========================================
-     ADMIN SIDEBAR
-     Darker than main content in dark mode
-     ======================================== */
   --sidebar: oklch(0.18 0.01 270);
   --sidebar-foreground: oklch(0.97 0.01 270);
   --sidebar-primary: oklch(0.70 0.15 250);
@@ -337,10 +318,6 @@
   --sidebar-border: oklch(0.30 0.01 270);
   --sidebar-ring: oklch(0.70 0.15 250);
 
-  /* ========================================
-     NEW: SHADOW SYSTEM (Dark Mode)
-     Stronger shadows for depth perception
-     ======================================== */
   --shadow-sm: 0 1px 2px 0 oklch(0 0 0 / 0.4);
   --shadow-md: 0 4px 6px -1px oklch(0 0 0 / 0.4),
     0 2px 4px -2px oklch(0 0 0 / 0.4);
@@ -351,15 +328,17 @@
   --shadow-2xl: 0 25px 50px -12px oklch(0 0 0 / 0.6);
 }
 
-/* ============================================
-   BASE STYLES
-   Apply design system defaults
-   ============================================ */
 
+/* ============================================================
+   BASE STYLES
+   ============================================================
+   Áp dụng default cho toàn bộ app
+   ============================================================ */
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground antialiased;
   }
