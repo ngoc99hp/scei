@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { PublicNav } from "@/components/public-nav"
 
 export default function PublicLayout({ children }) {
   return (
@@ -9,32 +10,13 @@ export default function PublicLayout({ children }) {
           <Link href="/" className="text-xl font-bold">
             SCEI
           </Link>
-          
-          <div className="hidden items-center gap-6 md:flex">
-            <Link href="/programs" className="text-sm font-medium transition-colors hover:text-primary">
-              Chương trình
-            </Link>
-            <Link href="/startups" className="text-sm font-medium transition-colors hover:text-primary">
-              Startups
-            </Link>
-            <Link href="/mentors" className="text-sm font-medium transition-colors hover:text-primary">
-              Mentors
-            </Link>
-            <Link href="/events" className="text-sm font-medium transition-colors hover:text-primary">
-              Sự kiện
-            </Link>
-            <Link href="/about" className="text-sm font-medium transition-colors hover:text-primary">
-              Về chúng tôi
-            </Link>
-            <Link href="/contact" className="text-sm font-medium transition-colors hover:text-primary">
-              Liên hệ
-            </Link>
-          </div>
+
+          <PublicNav />
 
           <div className="flex items-center gap-4">
             <ThemeToggle />
-            <Link 
-              href="/admin" 
+            <Link
+              href="/admin"
               className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
               Admin
@@ -56,7 +38,7 @@ export default function PublicLayout({ children }) {
                 Trung tâm Khởi nghiệp Đổi mới Sáng tạo
               </p>
             </div>
-            
+
             <div>
               <h4 className="mb-4 text-sm font-semibold">Chương trình</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
@@ -84,7 +66,7 @@ export default function PublicLayout({ children }) {
               </ul>
             </div>
           </div>
-          
+
           <div className="mt-8 border-t border-border pt-8 text-center text-sm text-muted-foreground">
             © {new Date().getFullYear()} SCEI. All rights reserved.
           </div>
