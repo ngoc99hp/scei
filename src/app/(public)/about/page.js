@@ -39,7 +39,7 @@ const programs = [
 
 const team = [
   {
-    name: "Nguyễn Văn A",
+    name: "Nguyễn Văn AA",
     role: "Giám đốc Điều hành",
     image: "https://i.pravatar.cc/150?u=a",
   },
