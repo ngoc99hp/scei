@@ -1,15 +1,13 @@
 // src/lib/queries/startups.js
 
 import sql from "@/lib/db"
+import { DEFAULT_PAGE_SIZE } from "@/lib/constants"
 
 /**
- * Lấy danh sách startup đã publish
- * @param {{ featured?: boolean, limit?: number, status?: string }} opts
+ * Lấy danh sách startup đã publish với pagination
  */
-export async function getStartups({ featured, limit, status } = {}) {
-  // Xây dựng điều kiện động bằng cách dùng nhiều query riêng
-  // (neon tagged templates không hỗ trợ dynamic WHERE tốt)
-  if (featured !== undefined && limit) {
+export async function getStartups({ featured, limit, status, page, pageSize = DEFAULT_PAGE_SIZE } = {}) {
+  if (limit !== undefined && featured !== undefined) {
     return sql`
       SELECT id, slug, name, logo, tagline, industry,
              stage, status, funding_raised, team_size,
@@ -21,6 +19,7 @@ export async function getStartups({ featured, limit, status } = {}) {
     `
   }
   if (status) {
+    const offset = ((page ?? 1) - 1) * pageSize
     return sql`
       SELECT id, slug, name, logo, tagline, industry,
              stage, status, funding_raised, team_size,
@@ -28,8 +27,21 @@ export async function getStartups({ featured, limit, status } = {}) {
       FROM startups
       WHERE is_published = true AND status = ${status}
       ORDER BY is_featured DESC, display_order ASC
+      LIMIT ${pageSize} OFFSET ${offset}
     `
   }
+  if (limit !== undefined) {
+    return sql`
+      SELECT id, slug, name, logo, tagline, industry,
+             stage, status, funding_raised, team_size,
+             cover_image, tags, is_featured, display_order
+      FROM startups
+      WHERE is_published = true
+      ORDER BY is_featured DESC, display_order ASC
+      LIMIT ${limit}
+    `
+  }
+  const offset = ((page ?? 1) - 1) * pageSize
   return sql`
     SELECT id, slug, name, logo, tagline, industry,
            stage, status, funding_raised, team_size,
@@ -37,12 +49,29 @@ export async function getStartups({ featured, limit, status } = {}) {
     FROM startups
     WHERE is_published = true
     ORDER BY is_featured DESC, display_order ASC
+    LIMIT ${pageSize} OFFSET ${offset}
   `
 }
 
 /**
+ * Đếm tổng số startups (dùng cho pagination)
+ */
+export async function getStartupCount({ status } = {}) {
+  if (status) {
+    const rows = await sql`
+      SELECT COUNT(*) as count FROM startups
+      WHERE is_published = true AND status = ${status}
+    `
+    return Number(rows[0]?.count ?? 0)
+  }
+  const rows = await sql`
+    SELECT COUNT(*) as count FROM startups WHERE is_published = true
+  `
+  return Number(rows[0]?.count ?? 0)
+}
+
+/**
  * Lấy chi tiết 1 startup theo slug
- * @param {string} slug
  */
 export async function getStartupBySlug(slug) {
   const rows = await sql`
@@ -54,7 +83,7 @@ export async function getStartupBySlug(slug) {
 }
 
 /**
- * Tính tổng vốn huy động và nhân sự (dùng cho stats section)
+ * Tính tổng vốn và nhân sự (dùng cho stats)
  */
 export async function getStartupStats() {
   const rows = await sql`

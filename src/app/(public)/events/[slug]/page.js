@@ -2,6 +2,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { getEventBySlug } from "@/lib/queries/events"
+import Image from "next/image"
 import { Container } from "@/components/ui/container"
 import { Section } from "@/components/ui/section"
 import { Card } from "@/components/ui/card"
@@ -36,7 +37,7 @@ export default async function EventDetailPage({ params }) {
     <>
       {event.cover_image && (
         <div className="relative h-64 md:h-96 overflow-hidden">
-          <img src={event.cover_image} alt={event.title} className="h-full w-full object-cover" />
+          <Image src={event.cover_image} alt={event.title} fill className="object-cover" sizes="100vw" />
           <div className="absolute inset-0 bg-linear-to-t from-background via-background/40 to-transparent" />
         </div>
       )}

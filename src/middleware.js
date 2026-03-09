@@ -4,32 +4,12 @@
 
 import { withAuth } from "next-auth/middleware"
 import { NextResponse } from "next/server"
-
-// Simple in-memory rate limiter (đủ dùng cho Vercel serverless)
-const rateLimitMap = new Map()
-
-function checkRateLimit(ip, maxRequests = 10, windowMs = 60_000) {
-  const now    = Date.now()
-  const record = rateLimitMap.get(ip) || { count: 0, resetAt: now + windowMs }
-
-  if (now > record.resetAt) {
-    record.count   = 0
-    record.resetAt = now + windowMs
-  }
-
-  record.count++
-  rateLimitMap.set(ip, record)
-
-  return {
-    ok:        record.count <= maxRequests,
-    remaining: Math.max(0, maxRequests - record.count),
-  }
-}
+import { rateLimit } from "@/lib/rate-limit"
 
 export default withAuth(
-  function middleware(req) {
+  async function middleware(req) {
     const { pathname } = req.nextUrl
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ?? "127.0.0.1"
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "127.0.0.1"
 
     // Rate limit public form endpoints
     const isPublicApi =
@@ -38,11 +18,17 @@ export default withAuth(
       pathname.startsWith("/api/programs/")
 
     if (isPublicApi) {
-      const { ok, remaining } = checkRateLimit(ip)
+      const { ok, remaining, reset } = await rateLimit(ip)
       if (!ok) {
         return NextResponse.json(
-          { error: "Quá nhiều yêu cầu. Vui lòng thử lại sau 1 phút." },
-          { status: 429, headers: { "Retry-After": "60" } }
+          { error: "Quá nhiều yêu cầu. Vui lòng thử lại sau." },
+          {
+            status: 429,
+            headers: {
+              "Retry-After": String(reset),
+              "X-RateLimit-Remaining": "0",
+            },
+          }
         )
       }
       const res = NextResponse.next()
@@ -56,15 +42,10 @@ export default withAuth(
     callbacks: {
       authorized({ req, token }) {
         const { pathname } = req.nextUrl
-
-        // /admin/login luôn public
         if (pathname === "/admin/login") return true
-
-        // /admin/* và /api/admin/* cần đăng nhập
         if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) {
           return !!token
         }
-
         return true
       },
     },

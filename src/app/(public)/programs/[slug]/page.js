@@ -2,6 +2,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { getProgramBySlug, getProgramApplicationCount } from "@/lib/queries/programs"
+import Image from "next/image"
 import { Container } from "@/components/ui/container"
 import { Section } from "@/components/ui/section"
 import { Card } from "@/components/ui/card"
@@ -31,7 +32,7 @@ export default async function ProgramDetailPage({ params }) {
     <>
       {program.cover_image && (
         <div className="relative h-72 md:h-96 overflow-hidden">
-          <img src={program.cover_image} alt={program.name} className="h-full w-full object-cover" />
+          <Image src={program.cover_image} alt={program.name} fill className="object-cover" sizes="100vw" />
           <div className="absolute inset-0 bg-linear-to-t from-background via-background/50 to-transparent" />
         </div>
       )}

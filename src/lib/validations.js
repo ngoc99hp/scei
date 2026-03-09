@@ -39,7 +39,7 @@ export const eventRegistrationSchema = z.object({
 // ── Program Application ───────────────────────────────────────
 
 export const applicationSchema = z.object({
-  programId:      z.string().cuid("Program ID không hợp lệ"),
+  programId:      z.string().min(1, "Program ID không hợp lệ"),
   applicantName:  z.string().min(2, "Họ tên tối thiểu 2 ký tự").max(100),
   applicantEmail: z.string().email("Email không hợp lệ"),
   applicantPhone: z.string().min(10, "Số điện thoại không hợp lệ").max(15),

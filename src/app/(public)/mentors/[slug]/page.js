@@ -1,7 +1,8 @@
 // src/app/(public)/mentors/[slug]/page.js
 import Link from "next/link"
+import Image from "next/image"
 import { notFound } from "next/navigation"
-import sql from "@/lib/db"
+import { getMentorBySlug } from "@/lib/queries/mentors"
 import { Container } from "@/components/ui/container"
 import { Section } from "@/components/ui/section"
 import { Card } from "@/components/ui/card"
@@ -11,16 +12,15 @@ import { ArrowLeft, Mail, Linkedin, Globe, Facebook } from "lucide-react"
 export const revalidate = 3600
 
 export async function generateMetadata({ params }) {
-  const rows = await sql`SELECT name, short_bio FROM mentors WHERE slug = ${params.slug} LIMIT 1`
-  if (!rows[0]) return {}
-  return { title: `${rows[0].name} — SCEI`, description: rows[0].short_bio }
+  const { slug } = await params
+  const m = await getMentorBySlug(slug)
+  if (!m) return {}
+  return { title: `${m.name} — SCEI`, description: m.short_bio }
 }
 
 export default async function MentorDetailPage({ params }) {
-  const rows = await sql`
-    SELECT * FROM mentors WHERE slug = ${params.slug} AND is_published = true LIMIT 1
-  `
-  const m = rows[0]
+  const { slug } = await params
+  const m = await getMentorBySlug(slug)
   if (!m) notFound()
 
   return (
@@ -33,11 +33,20 @@ export default async function MentorDetailPage({ params }) {
         <div className="grid gap-12 lg:grid-cols-3">
           {/* Sidebar */}
           <Card className="p-8 text-center h-fit sticky top-24">
-            <div className="h-40 w-40 rounded-full mx-auto mb-6 overflow-hidden bg-muted">
-              {m.avatar
-                ? <img src={m.avatar} alt={m.name} className="h-full w-full object-cover" />
-                : <div className="h-full w-full flex items-center justify-center text-5xl font-bold text-primary">{m.name[0]}</div>
-              }
+            <div className="relative h-40 w-40 rounded-full mx-auto mb-6 overflow-hidden bg-muted">
+              {m.avatar ? (
+                <Image
+                  src={m.avatar}
+                  alt={m.name}
+                  fill
+                  className="object-cover"
+                  sizes="160px"
+                />
+              ) : (
+                <div className="h-full w-full flex items-center justify-center text-5xl font-bold text-primary">
+                  {m.name[0]}
+                </div>
+              )}
             </div>
             <h1 className="text-2xl font-bold">{m.name}</h1>
             <p className="text-primary font-medium mt-1">{m.title}</p>

@@ -1,214 +1,131 @@
-"use client"
-
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
+// src/app/(public)/contact/page.js
 import { Container } from "@/components/ui/container"
 import { Section } from "@/components/ui/section"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { PageHeader } from "@/components/ui/page-header"
-import { Mail, Phone, MapPin, Linkedin, Facebook, Send, Building2, UserCircle2, Handshake } from "lucide-react"
+import ContactForm from "@/components/forms/contact-form"
+import { MapPin, Phone, Mail, Clock, Facebook, Linkedin } from "lucide-react"
 
-const contactFormSchema = z.object({
-  fullName: z.string().min(2, "Họ tên phải có ít nhất 2 ký tự"),
-  organization: z.string().optional(),
-  email: z.string().email("Email không hợp lệ"),
-  phone: z.string().min(10, "Số điện thoại không hợp lệ"),
-  subject: z.string().min(1, "Vui lòng chọn chủ đề"),
-  message: z.string().min(10, "Nội dung phải có ít nhất 10 ký tự"),
-})
+export const metadata = {
+  title: "Liên hệ — SCEI",
+  description: "Liên hệ với Trung tâm Hỗ trợ Khởi nghiệp Đổi mới Sáng tạo SCEI để được tư vấn và hỗ trợ.",
+}
+
+const CONTACT_INFO = [
+  {
+    icon: MapPin,
+    label: "Địa chỉ",
+    value: "123 Đường Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
+  },
+  {
+    icon: Phone,
+    label: "Điện thoại",
+    value: "(028) 3823 4567",
+    href: "tel:02838234567",
+  },
+  {
+    icon: Mail,
+    label: "Email",
+    value: "info@scei.vn",
+    href: "mailto:info@scei.vn",
+  },
+  {
+    icon: Clock,
+    label: "Giờ làm việc",
+    value: "Thứ 2 – Thứ 6: 8:00 – 17:30",
+  },
+]
 
 export default function ContactPage() {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    reset,
-  } = useForm({
-    resolver: zodResolver(contactFormSchema),
-  })
-
-  const onSubmit = async (data) => {
-    // Mock API call
-    console.log("Form data:", data)
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    alert("Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi sớm nhất có thể.")
-    reset()
-  }
-
   return (
     <>
-      {/* Hero Section */}
-      <Section className="bg-gradient-to-b from-muted/50 to-background py-14">
+      {/* Hero */}
+      <div className="bg-linear-to-br from-blue-600 to-indigo-700 text-white py-16 md:py-24">
         <Container>
-          <PageHeader
-            title="Liên hệ & Hỗ trợ"
-            description="Chúng tôi luôn sẵn sàng lắng nghe và đồng hành cùng bạn trên hành trình đổi mới sáng tạo."
-          />
-        </Container>
-      </Section>
-
-      {/* Stakeholder Quick Links */}
-      <Section className="py-12 border-y border-border bg-muted/20">
-        <Container>
-          <div className="grid gap-6 md:grid-cols-3">
-            <Card className="p-6 flex flex-col items-center text-center space-y-4 hover:shadow-md transition-shadow">
-              <div className="p-3 bg-primary/10 rounded-full text-primary">
-                <UserCircle2 size={32} />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg">Dành cho Startups</h3>
-                <p className="text-sm text-muted-foreground mt-2">Đăng ký tham gia các chương trình ươm tạo và tăng tốc.</p>
-              </div>
-              <Button variant="outline" size="sm" className="w-full">Đăng ký ngay</Button>
-            </Card>
-
-            <Card className="p-6 flex flex-col items-center text-center space-y-4 hover:shadow-md transition-shadow">
-              <div className="p-3 bg-primary/10 rounded-full text-primary">
-                <Handshake size={32} />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg">Dành cho Mentors</h3>
-                <p className="text-sm text-muted-foreground mt-2">Chia sẻ kinh nghiệm và dẫn dắt thế hệ khởi nghiệp mới.</p>
-              </div>
-              <Button variant="outline" size="sm" className="w-full">Trở thành Mentor</Button>
-            </Card>
-
-            <Card className="p-6 flex flex-col items-center text-center space-y-4 hover:shadow-md transition-shadow">
-              <div className="p-3 bg-primary/10 rounded-full text-primary">
-                <Building2 size={32} />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg">Dành cho Đối tác</h3>
-                <p className="text-sm text-muted-foreground mt-2">Hợp tác xây dựng và phát triển hệ sinh thái sáng tạo.</p>
-              </div>
-              <Button variant="outline" size="sm" className="w-full">Liên hệ hợp tác</Button>
-            </Card>
+          <div className="max-w-2xl">
+            <p className="text-blue-200 text-sm font-medium uppercase tracking-widest mb-3">Liên hệ</p>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">Kết nối với chúng tôi</h1>
+            <p className="text-blue-100 text-lg leading-relaxed">
+              Dù bạn đang tìm kiếm hỗ trợ khởi nghiệp, cơ hội hợp tác hay chỉ muốn tìm hiểu thêm —
+              đội ngũ SCEI luôn sẵn sàng lắng nghe.
+            </p>
           </div>
         </Container>
-      </Section>
+      </div>
 
-      {/* Main Contact Section (Split Layout) */}
-      <Section className="py-20">
+      <Section className="py-16 md:py-20">
         <Container>
-          <div className="grid gap-12 lg:grid-cols-2">
-            {/* Left Column: Form */}
-            <div className="space-y-8">
-              <div>
-                <h2 className="text-3xl font-bold">Gửi lời nhắn</h2>
-                <p className="text-muted-foreground mt-2">Điền thông tin dưới đây để đội ngũ SCEI hỗ trợ bạn tốt nhất.</p>
-              </div>
+          <div className="grid gap-12 lg:grid-cols-5">
 
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName">Họ và tên</Label>
-                    <Input id="fullName" placeholder="Nguyễn Văn A" {...register("fullName")} />
-                    {errors.fullName && <p className="text-xs text-destructive">{errors.fullName.message}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="organization">Tổ chức / Công ty</Label>
-                    <Input id="organization" placeholder="SCEI" {...register("organization")} />
-                  </div>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" placeholder="example@scei.vn" {...register("email")} />
-                    {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Số điện thoại</Label>
-                    <Input id="phone" placeholder="028 XXXX XXXX" {...register("phone")} />
-                    {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="subject">Chủ đề</Label>
-                  <select
-                    id="subject"
-                    className="flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    {...register("subject")}
-                  >
-                    <option value="">Chọn chủ đề</option>
-                    <option value="hop-tac">Hợp tác chiến lược</option>
-                    <option value="uom-tao">Tham gia chương trình ươm tạo</option>
-                    <option value="ho-tro">Hỗ trợ kỹ thuật</option>
-                    <option value="khac">Khác</option>
-                  </select>
-                  {errors.subject && <p className="text-xs text-destructive">{errors.subject.message}</p>}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="message">Nội dung</Label>
-                  <Textarea id="message" placeholder="Nhập tin nhắn của bạn..." className="min-h-[150px]" {...register("message")} />
-                  {errors.message && <p className="text-xs text-destructive">{errors.message.message}</p>}
-                </div>
-
-                <Button type="submit" size="lg" className="w-full sm:w-auto px-8" disabled={isSubmitting}>
-                  {isSubmitting ? "Đang gửi..." : "Gửi tin nhắn"}
-                  <Send className="ml-2 h-4 w-4" />
-                </Button>
-              </form>
+            {/* Form — chiếm 3/5 */}
+            <div className="lg:col-span-3">
+              <h2 className="text-2xl font-bold mb-2">Gửi yêu cầu cho chúng tôi</h2>
+              <p className="text-gray-500 text-sm mb-8">
+                Điền thông tin bên dưới, chúng tôi sẽ phản hồi trong vòng <strong>1–2 ngày làm việc</strong>.
+              </p>
+              <ContactForm />
             </div>
 
-            {/* Right Column: Info Cards & Map */}
-            <div className="space-y-8">
-              <div className="grid gap-6">
-                <Card className="p-6 flex items-start space-x-4">
-                  <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                    <MapPin size={24} />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Địa chỉ văn phòng</h4>
-                    <p className="text-sm text-muted-foreground mt-1">Tầng 4, Tòa nhà Innovation, Khu Công nghệ cao, TP. Hồ Chí Minh</p>
-                  </div>
-                </Card>
-
-                <Card className="p-6 flex items-start space-x-4">
-                  <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                    <Phone size={24} />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Hotline</h4>
-                    <p className="text-sm text-muted-foreground mt-1">+84 28 1234 5678</p>
-                    <p className="text-xs text-muted-foreground">(Thứ 2 - Thứ 6: 8:00 - 17:30)</p>
-                  </div>
-                </Card>
-
-                <Card className="p-6 flex items-start space-x-4">
-                  <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                    <Mail size={24} />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Email hỗ trợ</h4>
-                    <p className="text-sm text-muted-foreground mt-1">contact@scei.com.vn</p>
-                  </div>
-                </Card>
+            {/* Thông tin liên hệ — chiếm 2/5 */}
+            <div className="lg:col-span-2 space-y-8">
+              <div>
+                <h2 className="text-2xl font-bold mb-6">Thông tin liên hệ</h2>
+                <ul className="space-y-5">
+                  {CONTACT_INFO.map(({ icon: Icon, label, value, href }) => (
+                    <li key={label} className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+                        <Icon className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-0.5">{label}</p>
+                        {href ? (
+                          <a href={href} className="text-gray-800 font-medium hover:text-blue-600 transition-colors">
+                            {value}
+                          </a>
+                        ) : (
+                          <p className="text-gray-800 font-medium">{value}</p>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               </div>
 
-              {/* Social Links */}
-              <div className="flex gap-4">
-                <Button variant="outline" size="icon" className="rounded-full">
-                  <Linkedin size={20} />
-                </Button>
-                <Button variant="outline" size="icon" className="rounded-full">
-                  <Facebook size={20} />
-                </Button>
-              </div>
-
-              {/* Map Placeholder */}
-              <div className="h-[300px] w-full rounded-xl bg-muted animate-pulse flex items-center justify-center border border-border overflow-hidden">
-                <div className="text-center p-6">
-                  <MapPin className="mx-auto h-8 w-8 text-muted-foreground opacity-50 mb-2" />
-                  <p className="text-sm text-muted-foreground">Google Maps Integration Placeholder</p>
+              {/* Mạng xã hội */}
+              <div>
+                <p className="text-sm font-semibold text-gray-700 mb-3">Theo dõi chúng tôi</p>
+                <div className="flex gap-3">
+                  <a
+                    href="https://facebook.com/scei.vn"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-colors"
+                    aria-label="Facebook SCEI"
+                  >
+                    <Facebook className="w-4 h-4" />
+                  </a>
+                  <a
+                    href="https://linkedin.com/company/scei-vn"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 rounded-xl bg-sky-600 hover:bg-sky-700 text-white flex items-center justify-center transition-colors"
+                    aria-label="LinkedIn SCEI"
+                  >
+                    <Linkedin className="w-4 h-4" />
+                  </a>
                 </div>
+              </div>
+
+              {/* Bản đồ nhúng */}
+              <div className="rounded-2xl overflow-hidden border border-gray-200 h-56">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.4499!2d106.7008!3d10.7769!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTDCsDQ2JzM2LjkiTiAxMDbCsDQyJzAyLjkiRQ!5e0!3m2!1svi!2svn!4v1"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen=""
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Bản đồ SCEI"
+                />
               </div>
             </div>
           </div>

@@ -1,53 +1,52 @@
 // src/app/(public)/programs/page.js
 import Link from "next/link"
-import { getPrograms } from "@/lib/queries/programs"
+import Image from "next/image"
+import { getPrograms, getProgramCount } from "@/lib/queries/programs"
+import { PROGRAM_TYPE_LABEL, PROGRAM_STATUS_LABEL, DEFAULT_PAGE_SIZE } from "@/lib/constants"
+import { buildPagination, parsePage } from "@/lib/pagination"
 import { Container } from "@/components/ui/container"
 import { Section } from "@/components/ui/section"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { CalendarDays, Users, ArrowRight, CheckCircle2 } from "lucide-react"
+import { PaginationControls } from "@/components/ui/pagination"
 
 export const revalidate = 3600
 
-const typeLabel = {
-  INCUBATION:   { label: "Ươm tạo",    color: "bg-blue-50 text-blue-700 border-blue-200" },
-  ACCELERATION: { label: "Tăng tốc",   color: "bg-purple-50 text-purple-700 border-purple-200" },
-  COWORKING:    { label: "Co-working", color: "bg-green-50 text-green-700 border-green-200" },
-}
+export default async function ProgramsPage({ searchParams }) {
+  const sp   = await searchParams
+  const page = parsePage(sp?.page)
 
-const statusLabel = {
-  OPEN:      { label: "Đang mở đăng ký", dot: "bg-green-500" },
-  CLOSED:    { label: "Đã đóng",          dot: "bg-gray-400" },
-  DRAFT:     { label: "Sắp mở",           dot: "bg-yellow-500" },
-  COMPLETED: { label: "Đã kết thúc",      dot: "bg-gray-400" },
-}
+  const [programs, total] = await Promise.all([
+    getPrograms({ page, pageSize: DEFAULT_PAGE_SIZE }),
+    getProgramCount(),
+  ])
 
-export default async function ProgramsPage() {
-  const programs = await getPrograms()
+  const pager    = buildPagination(total, page, DEFAULT_PAGE_SIZE)
   const featured = programs.filter(p => p.is_featured)
   const others   = programs.filter(p => !p.is_featured)
 
   return (
     <>
       {/* Hero */}
-      <Section className="bg-gradient-to-b from-muted/50 to-background py-20">
+      <Section className="bg-linear-to-b from-muted/50 to-background py-20">
         <Container>
           <div className="max-w-3xl">
             <Badge variant="outline" className="mb-6 border-primary text-primary px-4 py-1 rounded-full font-medium">
               Chương trình SCEI
             </Badge>
-            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl text-foreground leading-[1.1]">
-              Đồng hành cùng bạn từ <span className="text-primary">ý tưởng đến thành công</span>
+            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl leading-[1.1]">
+              Đồng hành từ <span className="text-primary">ý tưởng đến thành công</span>
             </h1>
             <p className="mt-6 text-xl text-muted-foreground leading-relaxed">
-              Chọn chương trình phù hợp với giai đoạn phát triển của startup và bắt đầu hành trình cùng SCEI.
+              Chọn chương trình phù hợp với giai đoạn phát triển của startup.
             </p>
           </div>
         </Container>
       </Section>
 
-      {featured.length > 0 && (
+      {featured.length > 0 && page === 1 && (
         <Section className="py-16">
           <Container>
             <h2 className="text-2xl font-bold mb-8 flex items-center gap-2">
@@ -60,26 +59,32 @@ export default async function ProgramsPage() {
         </Section>
       )}
 
-      {others.length > 0 && (
-        <Section className="py-16 bg-muted/20">
-          <Container>
-            <h2 className="text-2xl font-bold mb-8 flex items-center gap-2">
-              <span className="h-8 w-1 bg-primary rounded-full" /> Tất cả chương trình
-            </h2>
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {others.map(p => <ProgramCard key={p.id} program={p} />)}
-            </div>
-          </Container>
-        </Section>
-      )}
+      <Section className={`py-16 ${featured.length > 0 && page === 1 ? "bg-muted/20" : ""}`}>
+        <Container>
+          {others.length > 0 ? (
+            <>
+              {featured.length > 0 && page === 1 && (
+                <h2 className="text-2xl font-bold mb-8 flex items-center gap-2">
+                  <span className="h-8 w-1 bg-primary rounded-full" /> Tất cả chương trình
+                </h2>
+              )}
+              <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                {others.map(p => <ProgramCard key={p.id} program={p} />)}
+              </div>
+            </>
+          ) : programs.length === 0 ? (
+            <p className="text-center text-muted-foreground text-xl py-16">
+              Chưa có chương trình nào được công bố.
+            </p>
+          ) : null}
 
-      {programs.length === 0 && (
-        <Section className="py-32">
-          <Container>
-            <p className="text-center text-muted-foreground text-xl">Chưa có chương trình nào được công bố.</p>
-          </Container>
-        </Section>
-      )}
+          {pager.pages > 1 && (
+            <div className="mt-12">
+              <PaginationControls pager={pager} basePath="/programs" />
+            </div>
+          )}
+        </Container>
+      </Section>
 
       <Section className="py-20 border-t border-border">
         <Container>
@@ -99,9 +104,9 @@ export default async function ProgramsPage() {
 }
 
 function ProgramCard({ program }) {
-  const type   = typeLabel[program.type]   || { label: program.type, color: "bg-gray-100 text-gray-700" }
-  const status = statusLabel[program.status] || { label: program.status, dot: "bg-gray-400" }
-  const benefits = program.benefits?.slice(0, 3) || []
+  const type   = PROGRAM_TYPE_LABEL[program.type]   ?? { label: program.type, color: "bg-gray-100 text-gray-700" }
+  const status = PROGRAM_STATUS_LABEL[program.status] ?? { label: program.status, dot: "bg-gray-400" }
+  const benefits = program.benefits?.slice(0, 3) ?? []
   const deadline = program.apply_deadline
     ? new Date(program.apply_deadline).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })
     : null
@@ -110,8 +115,14 @@ function ProgramCard({ program }) {
     <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300">
       {program.cover_image && (
         <div className="relative h-48 overflow-hidden">
-          <img src={program.cover_image} alt={program.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+          <Image
+            src={program.cover_image}
+            alt={program.name}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            sizes="(max-width:768px) 100vw, (max-width:1200px) 50vw, 400px"
+          />
+          <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent" />
           <div className="absolute top-4 left-4">
             <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${type.color}`}>{type.label}</span>
           </div>
