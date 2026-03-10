@@ -4,27 +4,37 @@ import sql from "@/lib/db"
 
 /**
  * Lấy danh sách bài viết đã publish
- * @param {{ limit?: number, category?: string }} opts
+ * @param {{ limit?: number, offset?: number, category?: string }} opts
  */
-export async function getArticles({ limit, category } = {}) {
-  if (category && limit) {
+export async function getArticles({ limit, offset = 0, category } = {}) {
+  if (category && limit !== undefined) {
     return sql`
       SELECT id, slug, title, excerpt, cover_image,
              category, tags, published_at, view_count
       FROM articles
       WHERE status = 'PUBLISHED' AND category = ${category}
       ORDER BY published_at DESC
-      LIMIT ${limit}
+      LIMIT ${limit} OFFSET ${offset}
     `
   }
-  if (limit) {
+  if (category) {
+    return sql`
+      SELECT id, slug, title, excerpt, cover_image,
+             category, tags, published_at, view_count
+      FROM articles
+      WHERE status = 'PUBLISHED' AND category = ${category}
+      ORDER BY published_at DESC
+      OFFSET ${offset}
+    `
+  }
+  if (limit !== undefined) {
     return sql`
       SELECT id, slug, title, excerpt, cover_image,
              category, tags, published_at, view_count
       FROM articles
       WHERE status = 'PUBLISHED'
       ORDER BY published_at DESC
-      LIMIT ${limit}
+      LIMIT ${limit} OFFSET ${offset}
     `
   }
   return sql`
@@ -33,7 +43,27 @@ export async function getArticles({ limit, category } = {}) {
     FROM articles
     WHERE status = 'PUBLISHED'
     ORDER BY published_at DESC
+    OFFSET ${offset}
   `
+}
+
+/**
+ * Đếm tổng số bài viết đã publish (dùng cho pagination)
+ * @param {{ category?: string }} opts
+ */
+export async function getArticleCount({ category } = {}) {
+  if (category) {
+    const rows = await sql`
+      SELECT COUNT(*) as count FROM articles
+      WHERE status = 'PUBLISHED' AND category = ${category}
+    `
+    return Number(rows[0]?.count ?? 0)
+  }
+  const rows = await sql`
+    SELECT COUNT(*) as count FROM articles
+    WHERE status = 'PUBLISHED'
+  `
+  return Number(rows[0]?.count ?? 0)
 }
 
 /**
@@ -53,7 +83,7 @@ export async function getArticleBySlug(slug) {
     sql`
       UPDATE articles SET view_count = view_count + 1
       WHERE id = ${article.id}
-    `.catch(() => {}) // Bỏ qua lỗi, không quan trọng
+    `.catch(() => {})
   }
 
   return article

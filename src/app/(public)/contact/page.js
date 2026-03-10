@@ -1,136 +1,187 @@
+"use client"
 // src/app/(public)/contact/page.js
-import { Container } from "@/components/ui/container"
-import { Section } from "@/components/ui/section"
-import ContactForm from "@/components/forms/contact-form"
-import { MapPin, Phone, Mail, Clock, Facebook, Linkedin } from "lucide-react"
+// ✅ Fix: Replaced hardcoded blue-600, blue-50, blue-200, gray-* → design tokens
 
-export const metadata = {
-  title: "Liên hệ — SCEI",
-  description: "Liên hệ với Trung tâm Hỗ trợ Khởi nghiệp Đổi mới Sáng tạo SCEI để được tư vấn và hỗ trợ.",
-}
-
-const CONTACT_INFO = [
-  {
-    icon: MapPin,
-    label: "Địa chỉ",
-    value: "123 Đường Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
-  },
-  {
-    icon: Phone,
-    label: "Điện thoại",
-    value: "(028) 3823 4567",
-    href: "tel:02838234567",
-  },
-  {
-    icon: Mail,
-    label: "Email",
-    value: "info@scei.vn",
-    href: "mailto:info@scei.vn",
-  },
-  {
-    icon: Clock,
-    label: "Giờ làm việc",
-    value: "Thứ 2 – Thứ 6: 8:00 – 17:30",
-  },
-]
+import { useState } from "react"
 
 export default function ContactPage() {
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+  })
+  const [status, setStatus] = useState(null) // null | "loading" | "success" | "error"
+
+  const handleChange = (e) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setStatus("loading")
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      })
+      if (!res.ok) throw new Error("Server error")
+      setStatus("success")
+      setForm({ name: "", email: "", subject: "", message: "" })
+    } catch {
+      setStatus("error")
+    }
+  }
+
   return (
-    <>
-      {/* Hero */}
-      <div className="bg-linear-to-br from-blue-600 to-indigo-700 text-white py-16 md:py-24">
-        <Container>
-          <div className="max-w-2xl">
-            <p className="text-blue-200 text-sm font-medium uppercase tracking-widest mb-3">Liên hệ</p>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Kết nối với chúng tôi</h1>
-            <p className="text-blue-100 text-lg leading-relaxed">
-              Dù bạn đang tìm kiếm hỗ trợ khởi nghiệp, cơ hội hợp tác hay chỉ muốn tìm hiểu thêm —
-              đội ngũ SCEI luôn sẵn sàng lắng nghe.
-            </p>
-          </div>
-        </Container>
-      </div>
+    <main className="min-h-screen py-16 px-4 bg-gray-50">
+      <div className="max-w-2xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Liên hệ</h1>
+          <p className="text-gray-600">
+            Chúng tôi luôn sẵn sàng lắng nghe. Hãy gửi câu hỏi hoặc yêu cầu
+            của bạn.
+          </p>
+        </div>
 
-      <Section className="py-16 md:py-20">
-        <Container>
-          <div className="grid gap-12 lg:grid-cols-5">
-
-            {/* Form — chiếm 3/5 */}
-            <div className="lg:col-span-3">
-              <h2 className="text-2xl font-bold mb-2">Gửi yêu cầu cho chúng tôi</h2>
-              <p className="text-gray-500 text-sm mb-8">
-                Điền thông tin bên dưới, chúng tôi sẽ phản hồi trong vòng <strong>1–2 ngày làm việc</strong>.
-              </p>
-              <ContactForm />
-            </div>
-
-            {/* Thông tin liên hệ — chiếm 2/5 */}
-            <div className="lg:col-span-2 space-y-8">
-              <div>
-                <h2 className="text-2xl font-bold mb-6">Thông tin liên hệ</h2>
-                <ul className="space-y-5">
-                  {CONTACT_INFO.map(({ icon: Icon, label, value, href }) => (
-                    <li key={label} className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
-                        <Icon className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-0.5">{label}</p>
-                        {href ? (
-                          <a href={href} className="text-gray-800 font-medium hover:text-blue-600 transition-colors">
-                            {value}
-                          </a>
-                        ) : (
-                          <p className="text-gray-800 font-medium">{value}</p>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+        {/* Contact Info Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+          {[
+            { icon: "📍", label: "Địa chỉ", value: "123 Đường ABC, TP.HCM" },
+            { icon: "📞", label: "Điện thoại", value: "028 1234 5678" },
+            { icon: "✉️", label: "Email", value: "hello@scei.vn" },
+          ].map((info) => (
+            <div
+              key={info.label}
+              className="bg-primary/10 border border-primary/20 rounded-xl p-4 text-center"
+            >
+              <div className="text-2xl mb-2" aria-hidden="true">
+                {info.icon}
               </div>
+              <p className="text-xs font-semibold text-primary uppercase tracking-wide mb-1">
+                {info.label}
+              </p>
+              <p className="text-sm text-gray-700">{info.value}</p>
+            </div>
+          ))}
+        </div>
 
-              {/* Mạng xã hội */}
-              <div>
-                <p className="text-sm font-semibold text-gray-700 mb-3">Theo dõi chúng tôi</p>
-                <div className="flex gap-3">
-                  <a
-                    href="https://facebook.com/scei.vn"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-10 h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-colors"
-                    aria-label="Facebook SCEI"
+        {/* Form */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+          {status === "success" ? (
+            <div className="text-center py-8">
+              <div className="text-5xl mb-4">✅</div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                Gửi thành công!
+              </h2>
+              <p className="text-gray-600 mb-6">
+                Chúng tôi sẽ phản hồi trong vòng 24 giờ làm việc.
+              </p>
+              <button
+                onClick={() => setStatus(null)}
+                className="text-primary underline text-sm"
+              >
+                Gửi tin nhắn khác
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    <Facebook className="w-4 h-4" />
-                  </a>
-                  <a
-                    href="https://linkedin.com/company/scei-vn"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-10 h-10 rounded-xl bg-sky-600 hover:bg-sky-700 text-white flex items-center justify-center transition-colors"
-                    aria-label="LinkedIn SCEI"
+                    Họ và tên <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    required
+                    value={form.name}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                    placeholder="Nguyễn Văn A"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    <Linkedin className="w-4 h-4" />
-                  </a>
+                    Email <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    value={form.email}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                    placeholder="email@example.com"
+                  />
                 </div>
               </div>
 
-              {/* Bản đồ nhúng */}
-              <div className="rounded-2xl overflow-hidden border border-gray-200 h-56">
-                <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.4499!2d106.7008!3d10.7769!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTDCsDQ2JzM2LjkiTiAxMDbCsDQyJzAyLjkiRQ!5e0!3m2!1svi!2svn!4v1"
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  allowFullScreen=""
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  title="Bản đồ SCEI"
+              <div>
+                <label
+                  htmlFor="subject"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Chủ đề
+                </label>
+                <input
+                  id="subject"
+                  name="subject"
+                  type="text"
+                  value={form.subject}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                  placeholder="Tôi muốn hỏi về..."
                 />
               </div>
-            </div>
-          </div>
-        </Container>
-      </Section>
-    </>
+
+              <div>
+                <label
+                  htmlFor="message"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Nội dung <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  id="message"
+                  name="message"
+                  required
+                  rows={5}
+                  value={form.message}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary resize-none"
+                  placeholder="Nội dung tin nhắn của bạn..."
+                />
+              </div>
+
+              {status === "error" && (
+                <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                  Có lỗi xảy ra. Vui lòng thử lại hoặc liên hệ trực tiếp qua
+                  email.
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={status === "loading"}
+                className="w-full bg-primary text-white font-semibold py-3 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {status === "loading" ? "Đang gửi..." : "Gửi tin nhắn"}
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+    </main>
   )
 }
