@@ -7,6 +7,8 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth.config"
 import { uploadImage } from "@/lib/cloudinary"
 
+export const dynamic = "force-dynamic"
+
 // Giới hạn kích thước file: 5MB
 const MAX_FILE_SIZE = 5 * 1024 * 1024
 
@@ -120,9 +122,3 @@ export async function POST(request) {
   }
 }
 
-// Giới hạn body size cho route này
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-}

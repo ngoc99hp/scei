@@ -439,8 +439,8 @@ export default async function EventsPage({ searchParams }) {
 
   const pager    = buildPagination(total, page, DEFAULT_PAGE_SIZE)
   const featured = page === 1 ? events.find(e => e.is_featured) : null
-  const upcoming = events.filter(e => e.status === "OPEN" || e.status === "DRAFT")
-  const past     = events.filter(e => e.status !== "OPEN" && e.status !== "DRAFT")
+  const upcoming = events.filter(e => e.status === "OPEN" || e.status === "ONGOING")
+  const past     = events.filter(e => e.status !== "OPEN" && e.status !== "ONGOING")
 
   // Truyền toàn bộ upcoming events cho CalendarWidget (client component xử lý)
   // CalendarWidget tự filter theo tháng đang xem + handle click interaction
