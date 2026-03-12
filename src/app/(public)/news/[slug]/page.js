@@ -1,12 +1,26 @@
 // src/app/(public)/news/[slug]/page.js
+//
+// ✅ FIX Critical #3 — Sanitize article.content trước dangerouslySetInnerHTML
+//    TRƯỚC: <div dangerouslySetInnerHTML={{ __html: article.content }} />
+//           → XSS risk: nếu DB bị inject script, user bị tấn công
+//    SAU:   <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.content) }} />
+//           → Chỉ render HTML tags an toàn, block script/event handlers/javascript: URLs
+
 import Link from "next/link"
 import Image from "next/image"
 import { notFound } from "next/navigation"
 import { getArticleBySlug, getRelatedArticles } from "@/lib/queries/articles"
+import { sanitizeHtml } from "@/lib/sanitize"   // ✅ FIX — import sanitizer
 import { Container } from "@/components/ui/container"
 import { Section } from "@/components/ui/section"
 import { Card } from "@/components/ui/card"
 import { ArrowLeft, CalendarDays, Eye, Tag, ArrowRight } from "lucide-react"
+import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
+
+const BASE = process.env.NEXT_PUBLIC_SITE_URL
+
+import { generateArticleStaticParams } from "@/lib/generate-static-params"
+export const generateStaticParams = generateArticleStaticParams
 
 export const revalidate = 1800
 
@@ -17,9 +31,16 @@ export async function generateMetadata({ params }) {
   return {
     title: article.meta_title || `${article.title} — SCEI`,
     description: article.meta_desc || article.excerpt,
+    alternates: { canonical: `${BASE}/news/${slug}` },
     openGraph: {
       title: article.title,
       description: article.excerpt,
+      images: article.cover_image ? [{ url: article.cover_image, width: 1200, height: 630 }] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: article.title,
+      description: article.meta_desc || article.excerpt,
       images: article.cover_image ? [article.cover_image] : [],
     },
   }
@@ -34,6 +55,10 @@ export default async function ArticleDetailPage({ params }) {
   if (!article) notFound()
 
   const related = await getRelatedArticles(article.id, article.category, 3)
+
+  // ✅ FIX — Sanitize content server-side, một lần duy nhất khi render
+  // sanitizeHtml() chạy trong Server Component → không tốn bundle client
+  const safeContent = sanitizeHtml(article.content)
 
   return (
     <>
@@ -88,14 +113,14 @@ export default async function ArticleDetailPage({ params }) {
                 <hr className="border-gray-200" />
               </header>
 
-              {/* Body */}
+              {/* Body — ✅ FIX: dùng safeContent đã sanitize thay vì article.content raw */}
               <div className="prose prose-gray prose-lg max-w-none
                 prose-headings:font-bold prose-headings:text-gray-900
                 prose-p:text-gray-600 prose-p:leading-relaxed
                 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
                 prose-img:rounded-xl prose-blockquote:border-blue-500
                 prose-strong:text-gray-800 prose-li:text-gray-600">
-                <div dangerouslySetInnerHTML={{ __html: article.content }} />
+                <div dangerouslySetInnerHTML={{ __html: safeContent }} />
               </div>
 
               {/* Tags */}
@@ -128,7 +153,7 @@ export default async function ArticleDetailPage({ params }) {
                       <li key={r.id}>
                         <Link href={`/news/${r.slug}`} className="group flex gap-3">
                           {r.cover_image && (
-                            <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                            <div className="relative w-16 h-16 rounded-lg overflow-hidden shrink-0">
                               <Image
                                 src={r.cover_image}
                                 alt={r.title}
@@ -160,6 +185,22 @@ export default async function ArticleDetailPage({ params }) {
           </div>
         </Container>
       </Section>
+      {/* ✅ SEO — JSON-LD */}
+      <ArticleJsonLd
+        title={article.title}
+        description={article.excerpt}
+        url={`${BASE}/news/${slug}`}
+        imageUrl={article.cover_image}
+        authorName={article.author_name ?? "SCEI"}
+        publishedAt={article.published_at}
+        modifiedAt={article.updated_at}
+        keywords={article.tags ?? []}
+      />
+      <BreadcrumbJsonLd items={[
+        { name: "Trang chủ", href: "/" },
+        { name: "Tin tức",   href: "/news" },
+        { name: article.title, href: `/news/${slug}` },
+      ]} />
     </>
   )
 }

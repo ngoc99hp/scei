@@ -9,6 +9,9 @@ import { Section } from "@/components/ui/section"
 import { Card } from "@/components/ui/card"
 import { ArrowLeft, Download, ExternalLink, Tag } from "lucide-react"
 
+import { generateResourceStaticParams } from "@/lib/generate-static-params"
+export const generateStaticParams = generateResourceStaticParams
+
 export const revalidate = 3600
 
 export async function generateMetadata({ params }) {
@@ -137,7 +140,7 @@ export default async function ResourceDetailPage({ params }) {
                             href={`/resources/${r.slug}`}
                             className="group flex items-start gap-3 hover:text-emerald-600 transition-colors"
                           >
-                            <span className="text-2xl flex-shrink-0">{rType.icon}</span>
+                            <span className="text-2xl shrink-0">{rType.icon}</span>
                             <div className="min-w-0">
                               <p className="text-sm font-medium text-gray-800 line-clamp-2 group-hover:text-emerald-600 transition-colors">
                                 {r.title}

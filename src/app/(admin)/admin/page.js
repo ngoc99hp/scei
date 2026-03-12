@@ -1,123 +1,147 @@
 // src/app/(admin)/admin/page.js
-// ✅ Fix: Replaced hardcoded fake numbers (15, 5, 12, 150) with real DB queries
+// Dashboard admin — queries đã được sửa cho khớp schema thực tế.
+//
+// Những thay đổi so với bản cũ:
+//   - event_registrations: không có cột status → đếm tất cả registrations
+//   - events.status: OPEN | ONGOING (không có PUBLISHED)
+//   - programs.status: OPEN (không có ACTIVE)
+//   - users: không có cột role → đếm tất cả users
+//   - resources: không có cột status → dùng is_published = false
+//   - getRecentActivity: event_registrations không có user_id, status
+//     → JOIN trực tiếp events, hiển thị người đăng ký gần nhất
 
 import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { authOptions } from "@/lib/auth.config"
 import { redirect } from "next/navigation"
 import sql from "@/lib/db"
 import Link from "next/link"
 
-// Revalidate mỗi 5 phút để dashboard không stale quá lâu
-export const revalidate = 300
+export const dynamic = "force-dynamic" // Dashboard luôn cần data mới nhất
 
 async function getDashboardStats() {
   const [
-    pendingRegistrations,
+    totalRegistrations,
     upcomingEvents,
-    activePrograms,
-    totalMembers,
-    recentArticles,
-    pendingResources,
+    openPrograms,
+    totalUsers,
+    draftArticles,
+    unpublishedResources,
   ] = await Promise.all([
-    // Số đăng ký chờ duyệt
-    sql`SELECT COUNT(*) as count FROM event_registrations WHERE status = 'PENDING'`,
-    // Số sự kiện sắp diễn ra
-    sql`SELECT COUNT(*) as count FROM events WHERE status = 'PUBLISHED' AND start_date > NOW()`,
-    // Số chương trình đang hoạt động
-    sql`SELECT COUNT(*) as count FROM programs WHERE status = 'ACTIVE'`,
-    // Tổng thành viên
-    sql`SELECT COUNT(*) as count FROM users WHERE role = 'USER'`,
-    // Bài viết mới nhất chờ duyệt
-    sql`SELECT COUNT(*) as count FROM articles WHERE status = 'DRAFT'`,
-    // Tài nguyên chờ duyệt
-    sql`SELECT COUNT(*) as count FROM resources WHERE status = 'PENDING'`,
+    // Tổng số đăng ký sự kiện (event_registrations không có status)
+    sql`SELECT COUNT(*) as count FROM event_registrations`,
+
+    // Sự kiện đang mở hoặc đang diễn ra
+    sql`SELECT COUNT(*) as count
+        FROM events
+        WHERE status IN ('OPEN', 'ONGOING')
+          AND start_date > NOW() - INTERVAL '7 days'`,
+
+    // Chương trình đang mở đăng ký
+    sql`SELECT COUNT(*) as count
+        FROM programs
+        WHERE status = 'OPEN'`,
+
+    // Tổng số tài khoản (users không có cột role)
+    sql`SELECT COUNT(*) as count FROM users`,
+
+    // Bài viết đang ở trạng thái nháp
+    sql`SELECT COUNT(*) as count
+        FROM articles
+        WHERE status = 'DRAFT'`,
+
+    // Tài nguyên chưa publish
+    sql`SELECT COUNT(*) as count
+        FROM resources
+        WHERE is_published = false`,
   ])
 
   return {
-    pendingRegistrations: Number(pendingRegistrations[0]?.count ?? 0),
-    upcomingEvents: Number(upcomingEvents[0]?.count ?? 0),
-    activePrograms: Number(activePrograms[0]?.count ?? 0),
-    totalMembers: Number(totalMembers[0]?.count ?? 0),
-    draftArticles: Number(recentArticles[0]?.count ?? 0),
-    pendingResources: Number(pendingResources[0]?.count ?? 0),
+    totalRegistrations:   Number(totalRegistrations[0]?.count   ?? 0),
+    upcomingEvents:       Number(upcomingEvents[0]?.count       ?? 0),
+    openPrograms:         Number(openPrograms[0]?.count         ?? 0),
+    totalUsers:           Number(totalUsers[0]?.count           ?? 0),
+    draftArticles:        Number(draftArticles[0]?.count        ?? 0),
+    unpublishedResources: Number(unpublishedResources[0]?.count ?? 0),
   }
 }
 
-async function getRecentActivity() {
+async function getRecentRegistrations() {
+  // event_registrations schema: id, event_id, name, email, phone, organization, note, created_at
   return sql`
-    SELECT 
+    SELECT
       er.id,
+      er.name,
+      er.email,
+      er.organization,
       er.created_at,
-      er.status,
-      u.name as user_name,
-      e.title as event_title
+      e.title as event_title,
+      e.slug  as event_slug
     FROM event_registrations er
-    JOIN users u ON er.user_id = u.id
     JOIN events e ON er.event_id = e.id
     ORDER BY er.created_at DESC
-    LIMIT 5
+    LIMIT 8
   `
 }
 
 export default async function AdminDashboard() {
   const session = await getServerSession(authOptions)
-  if (!session || session.user.role !== "ADMIN") {
-    redirect("/login")
-  }
 
-  const [stats, recentActivity] = await Promise.all([
+  if (!session) redirect("/admin/login")
+  if (session.user.role !== "ADMIN") redirect("/admin/login")
+
+  const [stats, recentRegistrations] = await Promise.all([
     getDashboardStats(),
-    getRecentActivity(),
+    getRecentRegistrations(),
   ])
 
   const statCards = [
     {
-      label: "Đăng ký chờ duyệt",
-      value: stats.pendingRegistrations,
-      href: "/admin/registrations",
-      color: "text-amber-600",
-      bg: "bg-amber-50",
-      icon: "⏳",
+      label: "Tổng đăng ký sự kiện",
+      value: stats.totalRegistrations,
+      href:  "/admin/registrations",
+      color: "text-blue-600",
+      bg:    "bg-blue-50",
+      icon:  "📋",
     },
     {
-      label: "Sự kiện sắp tới",
+      label: "Sự kiện đang mở",
       value: stats.upcomingEvents,
-      href: "/admin/events",
+      href:  "/admin/events",
       color: "text-primary",
-      bg: "bg-primary/5",
-      icon: "📅",
+      bg:    "bg-primary/5",
+      icon:  "📅",
     },
     {
-      label: "Chương trình active",
-      value: stats.activePrograms,
-      href: "/admin/programs",
+      label: "Chương trình mở đăng ký",
+      value: stats.openPrograms,
+      href:  "/admin/programs",
       color: "text-green-600",
-      bg: "bg-green-50",
-      icon: "🎯",
+      bg:    "bg-green-50",
+      icon:  "🎯",
     },
     {
-      label: "Tổng thành viên",
-      value: stats.totalMembers,
-      href: "/admin/users",
+      label: "Tổng tài khoản",
+      value: stats.totalUsers,
+      href:  "/admin/users",
       color: "text-purple-600",
-      bg: "bg-purple-50",
-      icon: "👥",
+      bg:    "bg-purple-50",
+      icon:  "👥",
     },
     {
       label: "Bài viết nháp",
       value: stats.draftArticles,
-      href: "/admin/articles",
+      href:  "/admin/articles",
       color: "text-gray-600",
-      bg: "bg-gray-50",
-      icon: "📝",
+      bg:    "bg-gray-50",
+      icon:  "📝",
     },
     {
-      label: "Tài nguyên chờ",
-      value: stats.pendingResources,
-      href: "/admin/resources",
+      label: "Tài nguyên chưa publish",
+      value: stats.unpublishedResources,
+      href:  "/admin/resources",
       color: "text-orange-600",
-      bg: "bg-orange-50",
-      icon: "📦",
+      bg:    "bg-orange-50",
+      icon:  "📦",
     },
   ]
 
@@ -153,10 +177,10 @@ export default async function AdminDashboard() {
         ))}
       </div>
 
-      {/* Recent Activity */}
+      {/* Recent Registrations */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="font-semibold text-gray-900">Hoạt động gần đây</h2>
+          <h2 className="font-semibold text-gray-900">Đăng ký sự kiện gần đây</h2>
           <Link
             href="/admin/registrations"
             className="text-sm text-primary hover:underline"
@@ -165,46 +189,34 @@ export default async function AdminDashboard() {
           </Link>
         </div>
 
-        {recentActivity.length === 0 ? (
+        {recentRegistrations.length === 0 ? (
           <div className="px-6 py-10 text-center text-gray-500">
-            Chưa có hoạt động nào.
+            Chưa có đăng ký nào.
           </div>
         ) : (
           <ul className="divide-y divide-gray-50">
-            {recentActivity.map((item) => (
+            {recentRegistrations.map((item) => (
               <li
                 key={item.id}
                 className="px-6 py-4 flex items-center justify-between hover:bg-gray-50"
               >
                 <div>
                   <p className="text-sm font-medium text-gray-900">
-                    {item.user_name}
+                    {item.name}
+                    {item.organization && (
+                      <span className="text-gray-400 font-normal">
+                        {" "}— {item.organization}
+                      </span>
+                    )}
                   </p>
                   <p className="text-xs text-gray-500 mt-0.5">
                     Đăng ký:{" "}
                     <span className="font-medium">{item.event_title}</span>
                   </p>
                 </div>
-                <div className="text-right">
-                  <span
-                    className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium ${
-                      item.status === "PENDING"
-                        ? "bg-amber-100 text-amber-700"
-                        : item.status === "APPROVED"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
-                    }`}
-                  >
-                    {item.status === "PENDING"
-                      ? "Chờ duyệt"
-                      : item.status === "APPROVED"
-                        ? "Đã duyệt"
-                        : "Từ chối"}
-                  </span>
-                  <p className="text-xs text-gray-400 mt-1">
-                    {new Date(item.created_at).toLocaleDateString("vi-VN")}
-                  </p>
-                </div>
+                <p className="text-xs text-gray-400 shrink-0 ml-4">
+                  {new Date(item.created_at).toLocaleDateString("vi-VN")}
+                </p>
               </li>
             ))}
           </ul>

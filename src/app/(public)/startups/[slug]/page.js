@@ -10,6 +10,12 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Globe, Linkedin, Facebook, Users, Calendar, DollarSign } from "lucide-react"
+import { BreadcrumbJsonLd } from "@/components/seo/json-ld"
+
+const BASE = process.env.NEXT_PUBLIC_SITE_URL
+
+import { generateStartupStaticParams } from "@/lib/generate-static-params"
+export const generateStaticParams = generateStartupStaticParams
 
 export const revalidate = 3600
 
@@ -17,7 +23,13 @@ export async function generateMetadata({ params }) {
   const { slug } = await params
   const s = await getStartupBySlug(slug)
   if (!s) return {}
-  return { title: `${s.name} — SCEI`, description: s.tagline }
+  const url = `${BASE}/startups/${slug}`
+  return {
+    title: `${s.name} — SCEI`,
+    description: s.tagline,
+    alternates: { canonical: url },
+    openGraph: { title: s.name, description: s.tagline, url, images: s.logo ? [s.logo] : [] },
+  }
 }
 
 export default async function StartupDetailPage({ params }) {
@@ -29,6 +41,7 @@ export default async function StartupDetailPage({ params }) {
   const statusMeta  = STARTUP_STATUS_LABEL[s.status] ?? { label: s.status, color: "bg-gray-100 text-gray-700" }
 
   return (
+    <>
     <Section className="py-12">
       <Container>
         <Link href="/startups" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8">
@@ -132,5 +145,13 @@ export default async function StartupDetailPage({ params }) {
         </div>
       </Container>
     </Section>
+
+    {/* ✅ SEO — JSON-LD */}
+    <BreadcrumbJsonLd items={[
+      { name: "Trang chủ", href: "/" },
+      { name: "Startup",   href: "/startups" },
+      { name: s.name,      href: `/startups/${slug}` },
+    ]} />
+  </>
   )
 }

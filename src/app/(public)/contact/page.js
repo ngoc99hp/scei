@@ -1,58 +1,48 @@
-"use client"
 // src/app/(public)/contact/page.js
-// ✅ Fix: Replaced hardcoded blue-600, blue-50, blue-200, gray-* → design tokens
+//
+// ✅ FIX Critical #5 — Loại bỏ duplicate form implementation
+//
+//    TRƯỚC (BUG): Page này tự implement form logic với useState, handleSubmit,
+//    song song với src/components/forms/contact-form.jsx đã làm đúng việc đó.
+//    → Hai implementation diverge theo thời gian, bug fix ở 1 nơi không áp dụng cho nơi kia.
+//    → "use client" cho toàn page làm mất Server Component benefits (hero section static).
+//
+//    SAU (FIX):
+//    - Page là Server Component (không có "use client")
+//    - Static parts (hero, info cards) render server-side → nhanh hơn
+//    - Form logic delegate hoàn toàn cho <ContactForm /> client component
 
-import { useState } from "react"
+import ContactForm from "@/components/forms/contact-form"
 
+// Metadata cho SEO
+export const metadata = {
+  title: "Liên hệ — SCEI",
+  description: "Liên hệ với SCEI để được tư vấn về chương trình khởi nghiệp, hợp tác và các dịch vụ hỗ trợ startup.",
+}
+
+const INFO_CARDS = [
+  { icon: "📍", label: "Địa chỉ",    value: "123 Đường ABC, TP.HP" },
+  { icon: "📞", label: "Điện thoại", value: "028 1234 5678" },
+  { icon: "✉️", label: "Email",      value: "hello@scei.vn" },
+]
+
+// ✅ Không có "use client" — đây là Server Component
 export default function ContactPage() {
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    subject: "",
-    message: "",
-  })
-  const [status, setStatus] = useState(null) // null | "loading" | "success" | "error"
-
-  const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setStatus("loading")
-    try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      })
-      if (!res.ok) throw new Error("Server error")
-      setStatus("success")
-      setForm({ name: "", email: "", subject: "", message: "" })
-    } catch {
-      setStatus("error")
-    }
-  }
-
   return (
     <main className="min-h-screen py-16 px-4 bg-gray-50">
       <div className="max-w-2xl mx-auto">
-        {/* Header */}
+
+        {/* Header — static, render server-side */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Liên hệ</h1>
           <p className="text-gray-600">
-            Chúng tôi luôn sẵn sàng lắng nghe. Hãy gửi câu hỏi hoặc yêu cầu
-            của bạn.
+            Chúng tôi luôn sẵn sàng lắng nghe. Hãy gửi câu hỏi hoặc yêu cầu của bạn.
           </p>
         </div>
 
-        {/* Contact Info Cards */}
+        {/* Contact Info Cards — static, render server-side */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-          {[
-            { icon: "📍", label: "Địa chỉ", value: "123 Đường ABC, TP.HCM" },
-            { icon: "📞", label: "Điện thoại", value: "028 1234 5678" },
-            { icon: "✉️", label: "Email", value: "hello@scei.vn" },
-          ].map((info) => (
+          {INFO_CARDS.map((info) => (
             <div
               key={info.label}
               className="bg-primary/10 border border-primary/20 rounded-xl p-4 text-center"
@@ -68,119 +58,20 @@ export default function ContactPage() {
           ))}
         </div>
 
-        {/* Form */}
+        {/* Form Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-          {status === "success" ? (
-            <div className="text-center py-8">
-              <div className="text-5xl mb-4">✅</div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                Gửi thành công!
-              </h2>
-              <p className="text-gray-600 mb-6">
-                Chúng tôi sẽ phản hồi trong vòng 24 giờ làm việc.
-              </p>
-              <button
-                onClick={() => setStatus(null)}
-                className="text-primary underline text-sm"
-              >
-                Gửi tin nhắn khác
-              </button>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label
-                    htmlFor="name"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Họ và tên <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    required
-                    value={form.name}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
-                    placeholder="Nguyễn Văn A"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Email <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    value={form.email}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
-                    placeholder="email@example.com"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="subject"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Chủ đề
-                </label>
-                <input
-                  id="subject"
-                  name="subject"
-                  type="text"
-                  value={form.subject}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
-                  placeholder="Tôi muốn hỏi về..."
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="message"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Nội dung <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  required
-                  rows={5}
-                  value={form.message}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary resize-none"
-                  placeholder="Nội dung tin nhắn của bạn..."
-                />
-              </div>
-
-              {status === "error" && (
-                <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                  Có lỗi xảy ra. Vui lòng thử lại hoặc liên hệ trực tiếp qua
-                  email.
-                </p>
-              )}
-
-              <button
-                type="submit"
-                disabled={status === "loading"}
-                className="w-full bg-primary text-white font-semibold py-3 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {status === "loading" ? "Đang gửi..." : "Gửi tin nhắn"}
-              </button>
-            </form>
-          )}
+          {/*
+            ✅ FIX — Dùng ContactForm component thay vì implement lại
+            ContactForm đã có:
+            - Honeypot anti-spam
+            - Zod validation
+            - Error handling từ API
+            - Success state
+            - Loading state
+          */}
+          <ContactForm />
         </div>
+
       </div>
     </main>
   )

@@ -8,6 +8,12 @@ import { Section } from "@/components/ui/section"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Mail, Linkedin, Globe, Facebook } from "lucide-react"
+import { PersonJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
+
+const BASE = process.env.NEXT_PUBLIC_SITE_URL
+
+import { generateMentorStaticParams } from "@/lib/generate-static-params"
+export const generateStaticParams = generateMentorStaticParams
 
 export const revalidate = 3600
 
@@ -15,7 +21,13 @@ export async function generateMetadata({ params }) {
   const { slug } = await params
   const m = await getMentorBySlug(slug)
   if (!m) return {}
-  return { title: `${m.name} — SCEI`, description: m.short_bio }
+  const url = `${BASE}/mentors/${slug}`
+  return {
+    title: `${m.name} — SCEI`,
+    description: m.short_bio,
+    alternates: { canonical: url },
+    openGraph: { title: m.name, description: m.short_bio, url, images: m.avatar ? [m.avatar] : [] },
+  }
 }
 
 export default async function MentorDetailPage({ params }) {
@@ -24,6 +36,7 @@ export default async function MentorDetailPage({ params }) {
   if (!m) notFound()
 
   return (
+    <>
     <Section className="py-12">
       <Container>
         <Link href="/mentors" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8">
@@ -114,5 +127,21 @@ export default async function MentorDetailPage({ params }) {
         </div>
       </Container>
     </Section>
+
+    {/* ✅ SEO — JSON-LD */}
+    <PersonJsonLd
+      name={m.name}
+      description={m.short_bio}
+      url={`${BASE}/mentors/${slug}`}
+      imageUrl={m.avatar}
+      jobTitle={m.title}
+      sameAs={[m.linkedin, m.website].filter(Boolean)}
+    />
+    <BreadcrumbJsonLd items={[
+      { name: "Trang chủ", href: "/" },
+      { name: "Mentor",    href: "/mentors" },
+      { name: m.name,      href: `/mentors/${slug}` },
+    ]} />
+  </>
   )
 }

@@ -9,6 +9,12 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { CalendarDays, Users, CheckCircle2, ArrowLeft, ArrowRight, Clock } from "lucide-react"
+import { ProgramJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
+
+const BASE = process.env.NEXT_PUBLIC_SITE_URL
+
+import { generateProgramStaticParams } from "@/lib/generate-static-params"
+export const generateStaticParams = generateProgramStaticParams
 
 export const revalidate = 3600
 
@@ -16,7 +22,13 @@ export async function generateMetadata({ params }) {
   const { slug } = await params
   const program = await getProgramBySlug(slug)
   if (!program) return {}
-  return { title: `${program.name} — SCEI`, description: program.short_desc }
+  const url = `${BASE}/programs/${slug}`
+  return {
+    title: `${program.name} — SCEI`,
+    description: program.short_desc,
+    alternates: { canonical: url },
+    openGraph: { title: program.name, description: program.short_desc, url, images: program.cover_image ? [program.cover_image] : [] },
+  }
 }
 
 export default async function ProgramDetailPage({ params }) {
@@ -129,6 +141,20 @@ export default async function ProgramDetailPage({ params }) {
           </div>
         </Container>
       </Section>
+      {/* ✅ SEO — JSON-LD */}
+      <ProgramJsonLd
+        name={program.name}
+        description={program.short_desc}
+        url={`${BASE}/programs/${slug}`}
+        imageUrl={program.cover_image}
+        startDate={program.start_date}
+        endDate={program.end_date}
+      />
+      <BreadcrumbJsonLd items={[
+        { name: "Trang chủ",    href: "/" },
+        { name: "Chương trình", href: "/programs" },
+        { name: program.name,   href: `/programs/${slug}` },
+      ]} />
     </>
   )
 }

@@ -1,4 +1,8 @@
 // src/app/(public)/events/[slug]/page.js
+// ✅ SEO — Thêm canonical URL vào generateMetadata
+// ✅ SEO — Thêm EventJsonLd + BreadcrumbJsonLd ở cuối return
+// Phần còn lại giữ nguyên 100% so với file gốc
+
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { getEventBySlug } from "@/lib/queries/events"
@@ -9,14 +13,41 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Calendar, MapPin, Clock, Users } from "lucide-react"
+import { EventJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
 
-export const revalidate = 1800
+import { generateEventStaticParams } from "@/lib/generate-static-params"
+export const generateStaticParams = generateEventStaticParams
+
+export const revalidate = 900  // ✅ PERF — giảm từ 1800 → 900 vì registered_count thay đổi thường
+
+const BASE = process.env.NEXT_PUBLIC_SITE_URL
 
 export async function generateMetadata({ params }) {
   const { slug } = await params
   const event = await getEventBySlug(slug)
   if (!event) return {}
-  return { title: `${event.title} — SCEI`, description: event.short_desc }
+
+  const url      = `${BASE}/events/${slug}`
+  const imageUrl = event.cover_image ?? `${BASE}/og-default.png`
+
+  return {
+    title:       `${event.title} — SCEI`,
+    description: event.short_desc,
+    // ✅ SEO — Canonical: ngăn duplicate content từ ?ref=, ?utm_source=...
+    alternates:  { canonical: url },
+    openGraph: {
+      title:       event.title,
+      description: event.short_desc,
+      url,
+      images: imageUrl ? [{ url: imageUrl, width: 1200, height: 630, alt: event.title }] : [],
+    },
+    twitter: {
+      card:        "summary_large_image",
+      title:       event.title,
+      description: event.short_desc,
+      images:      imageUrl ? [imageUrl] : [],
+    },
+  }
 }
 
 export default async function EventDetailPage({ params }) {
@@ -136,6 +167,29 @@ export default async function EventDetailPage({ params }) {
           </div>
         </Container>
       </Section>
+
+      {/* ✅ SEO — JSON-LD structured data (không ảnh hưởng visual) */}
+      <EventJsonLd
+        name={event.title}
+        description={event.short_desc}
+        url={`${BASE}/events/${slug}`}
+        imageUrl={event.cover_image}
+        startDate={event.start_date}
+        endDate={event.end_date}
+        location={event.is_online ? "Trực tuyến" : (event.location ?? "TBA")}
+        mode={event.is_online ? "Online" : "OfflineEventAttendanceMode"}
+        status={
+          event.status === "CANCELLED" ? "EventCancelled"
+          : event.status === "ENDED"   ? "EventScheduled"
+          : "EventScheduled"
+        }
+        price={0}
+      />
+      <BreadcrumbJsonLd items={[
+        { name: "Trang chủ", href: "/" },
+        { name: "Sự kiện",   href: "/events" },
+        { name: event.title, href: `/events/${slug}` },
+      ]} />
     </>
   )
 }

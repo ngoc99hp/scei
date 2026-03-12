@@ -1,6 +1,12 @@
 // src/lib/auth.config.js
-// authOptions tách khỏi route handler để import được từ Server Components,
-// middleware, và bất kỳ đâu mà không kéo theo Edge runtime constraints.
+//
+// Thiết kế DB hiện tại: chỉ có tài khoản admin, không có cột role.
+// → Mọi user trong bảng users đều được coi là ADMIN.
+// → role được hardcode = "ADMIN" thay vì đọc từ DB.
+//
+// Nếu sau này cần phân quyền nhiều role, chạy migration:
+//   ALTER TABLE users ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'ADMIN';
+// và bỏ comment dòng role: user.role bên dưới.
 
 import CredentialsProvider from "next-auth/providers/credentials"
 import { neon } from "@neondatabase/serverless"
@@ -35,13 +41,13 @@ export const authOptions = {
         `
         const user = rows[0]
 
-        if (!user)        throw new Error("Email hoặc mật khẩu không đúng")
+        if (!user)           throw new Error("Email hoặc mật khẩu không đúng")
         if (!user.is_active) throw new Error("Tài khoản đã bị vô hiệu hóa")
 
         const isValid = await bcrypt.compare(credentials.password, user.password_hash)
-        if (!isValid) throw new Error("Email hoặc mật khẩu không đúng")
+        if (!isValid)        throw new Error("Email hoặc mật khẩu không đúng")
 
-        // Fire-and-forget — không block login
+        // Fire-and-forget
         neon(process.env.DATABASE_URL)`
           UPDATE users SET last_login_at = now() WHERE id = ${user.id}
         `.catch(() => {})
@@ -51,6 +57,7 @@ export const authOptions = {
           email:  user.email,
           name:   user.name,
           avatar: user.avatar,
+          role:   "ADMIN", // hardcode vì DB chưa có cột role
         }
       },
     }),
@@ -61,13 +68,16 @@ export const authOptions = {
       if (user) {
         token.id     = user.id
         token.avatar = user.avatar
+        token.role   = user.role
       }
       return token
     },
+
     async session({ session, token }) {
       if (token) {
         session.user.id     = token.id
         session.user.avatar = token.avatar
+        session.user.role   = token.role
       }
       return session
     },

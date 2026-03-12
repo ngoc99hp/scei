@@ -1,17 +1,15 @@
-// src/middleware.js
-// 1. Bảo vệ /admin/* → redirect về /admin/login nếu chưa đăng nhập
-// 2. Rate limit /api/contact, /api/events/*, /api/programs/*
+// src/proxy.js  ← đổi tên file
 
 import { withAuth } from "next-auth/middleware"
 import { NextResponse } from "next/server"
 import { rateLimit } from "@/lib/rate-limit"
 
+// ↓ đổi tên function từ middleware → proxy
 export default withAuth(
-  async function middleware(req) {
+  async function proxy(req) {   // ← đổi tên ở đây
     const { pathname } = req.nextUrl
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "127.0.0.1"
 
-    // Rate limit public form endpoints
     const isPublicApi =
       pathname === "/api/contact" ||
       pathname.startsWith("/api/events/") ||
@@ -52,6 +50,7 @@ export default withAuth(
   }
 )
 
+// config giữ nguyên hoàn toàn
 export const config = {
   matcher: [
     "/admin/:path*",
