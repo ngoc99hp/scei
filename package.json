@@ -10,6 +10,13 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@neondatabase/serverless": "^1.0.2",
+    "@tailwindcss/typography": "^0.5.19",
+    "@tiptap/extension-image": "^3.20.1",
+    "@tiptap/extension-link": "^3.20.1",
+    "@tiptap/extension-placeholder": "^3.20.1",
+    "@tiptap/pm": "^3.20.1",
+    "@tiptap/react": "^3.20.1",
+    "@tiptap/starter-kit": "^3.20.1",
     "@upstash/redis": "^1.36.3",
     "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.1",

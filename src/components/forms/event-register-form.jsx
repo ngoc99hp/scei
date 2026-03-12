@@ -1,163 +1,187 @@
 "use client"
 // src/components/forms/event-register-form.jsx
-// Form đăng ký tham dự sự kiện — gọi POST /api/events/[id]/register
-// Props: eventId (string), eventTitle (string), onSuccess? (fn)
+// Form đăng ký sự kiện — gọi POST /api/events/[id]/register
+// Dùng trong: events/[slug]/page.js
 
 import { useState } from "react"
+import { Button } from "@/components/ui/button"
 
-export default function EventRegisterForm({ eventId, eventTitle, onSuccess }) {
-  const [form, setForm] = useState({
+export default function EventRegisterForm({ eventId, eventTitle }) {
+  const [open, setOpen]       = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [error, setError]     = useState("")
+  const [fields, setFields]   = useState({
     name: "", email: "", phone: "", organization: "", note: "",
   })
-  const [errors, setErrors] = useState({})
-  const [status, setStatus] = useState("idle") // idle | loading | success | error
-  const [serverMessage, setServerMessage] = useState("")
+  const [fieldErrors, setFieldErrors] = useState({})
 
   function handleChange(e) {
-    const { name, value } = e.target
-    setForm(prev => ({ ...prev, [name]: value }))
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: undefined }))
+    setFields(prev => ({ ...prev, [e.target.name]: e.target.value }))
+    setFieldErrors(prev => ({ ...prev, [e.target.name]: undefined }))
   }
 
   async function handleSubmit(e) {
     e.preventDefault()
-    setStatus("loading")
-    setErrors({})
-    setServerMessage("")
+    setLoading(true)
+    setError("")
+    setFieldErrors({})
 
     try {
       const res = await fetch(`/api/events/${eventId}/register`, {
-        method: "POST",
+        method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body:    JSON.stringify(fields),
       })
       const data = await res.json()
 
-      if (res.ok) {
-        setStatus("success")
-        setServerMessage(data.message)
-        onSuccess?.()
-      } else if (res.status === 422 && data.fields) {
-        setStatus("idle")
-        setErrors(data.fields)
+      if (!res.ok) {
+        if (data.fields) setFieldErrors(data.fields)
+        else setError(data.error || "Đã xảy ra lỗi. Vui lòng thử lại.")
       } else {
-        setStatus("error")
-        setServerMessage(data.error ?? "Đã xảy ra lỗi. Vui lòng thử lại.")
+        setSuccess(true)
       }
     } catch {
-      setStatus("error")
-      setServerMessage("Không thể kết nối đến máy chủ. Vui lòng thử lại.")
+      setError("Không thể kết nối. Vui lòng thử lại sau.")
+    } finally {
+      setLoading(false)
     }
   }
 
-  if (status === "success") {
+  // ── Trigger button (khi chưa mở form) ──────────────────────────────────────
+  if (!open) {
     return (
-      <div className="rounded-2xl bg-green-50 border border-green-200 p-8 text-center">
-        <div className="text-4xl mb-3">🎉</div>
-        <h3 className="text-lg font-semibold text-green-800 mb-2">Đăng ký thành công!</h3>
-        <p className="text-sm text-green-700">{serverMessage}</p>
+      <Button
+        onClick={() => setOpen(true)}
+        className="w-full rounded-full font-bold h-11"
+      >
+        Đăng ký tham gia
+      </Button>
+    )
+  }
+
+  // ── Thành công ──────────────────────────────────────────────────────────────
+  if (success) {
+    return (
+      <div className="rounded-xl bg-green-50 border border-green-200 p-5 text-center">
+        <p className="text-2xl mb-2">🎉</p>
+        <p className="font-semibold text-green-800">Đăng ký thành công!</p>
+        <p className="text-sm text-green-700 mt-1">
+          Chúng tôi sẽ gửi thông tin chi tiết đến email của bạn.
+        </p>
       </div>
     )
   }
 
+  // ── Form ────────────────────────────────────────────────────────────────────
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {eventTitle && (
-        <p className="text-sm text-gray-500 mb-2">
-          Đăng ký tham dự: <span className="font-medium text-gray-800">{eventTitle}</span>
-        </p>
-      )}
+    <div className="rounded-xl border border-gray-200 bg-white p-5">
+      <h3 className="font-bold text-base mb-4">Đăng ký: {eventTitle}</h3>
 
-      {status === "error" && (
-        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
-          {serverMessage}
-        </div>
-      )}
-
-      <Field label="Họ và tên" required error={errors.name?.[0]}>
-        <input
-          name="name"
-          value={form.name}
-          onChange={handleChange}
-          placeholder="Nguyễn Văn A"
-          className={inputCls(errors.name)}
-        />
-      </Field>
-
-      <Field label="Email" required error={errors.email?.[0]}>
-        <input
-          type="email"
-          name="email"
-          value={form.email}
-          onChange={handleChange}
-          placeholder="email@example.com"
-          className={inputCls(errors.email)}
-        />
-      </Field>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Số điện thoại" error={errors.phone?.[0]}>
+      <form onSubmit={handleSubmit} className="space-y-3">
+        {/* Họ tên */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Họ và tên <span className="text-red-500">*</span>
+          </label>
           <input
-            type="tel"
-            name="phone"
-            value={form.phone}
+            name="name"
+            value={fields.name}
             onChange={handleChange}
-            placeholder="0901 234 567"
-            className={inputCls(errors.phone)}
+            required
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+            placeholder="Nguyễn Văn A"
           />
-        </Field>
-        <Field label="Tổ chức / Công ty" error={errors.organization?.[0]}>
+          {fieldErrors.name && <p className="text-red-500 text-xs mt-1">{fieldErrors.name[0]}</p>}
+        </div>
+
+        {/* Email */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Email <span className="text-red-500">*</span>
+          </label>
+          <input
+            name="email"
+            type="email"
+            value={fields.email}
+            onChange={handleChange}
+            required
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+            placeholder="email@example.com"
+          />
+          {fieldErrors.email && <p className="text-red-500 text-xs mt-1">{fieldErrors.email[0]}</p>}
+        </div>
+
+        {/* Số điện thoại */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Số điện thoại
+          </label>
+          <input
+            name="phone"
+            type="tel"
+            value={fields.phone}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+            placeholder="0901234567"
+          />
+          {fieldErrors.phone && <p className="text-red-500 text-xs mt-1">{fieldErrors.phone[0]}</p>}
+        </div>
+
+        {/* Tổ chức */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Tổ chức / Trường học
+          </label>
           <input
             name="organization"
-            value={form.organization}
+            value={fields.organization}
             onChange={handleChange}
-            placeholder="Tên công ty"
-            className={inputCls(errors.organization)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+            placeholder="SCEI, UEH, ..."
           />
-        </Field>
-      </div>
+        </div>
 
-      <Field label="Ghi chú" error={errors.note?.[0]}>
-        <textarea
-          name="note"
-          value={form.note}
-          onChange={handleChange}
-          rows={3}
-          placeholder="Câu hỏi hoặc thông tin thêm (không bắt buộc)"
-          className={inputCls(errors.note)}
-        />
-      </Field>
+        {/* Ghi chú */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Ghi chú
+          </label>
+          <textarea
+            name="note"
+            value={fields.note}
+            onChange={handleChange}
+            rows={2}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none"
+            placeholder="Câu hỏi hoặc yêu cầu đặc biệt..."
+          />
+        </div>
 
-      <button
-        type="submit"
-        disabled={status === "loading"}
-        className="w-full rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 px-6 transition-colors"
-      >
-        {status === "loading" ? "Đang đăng ký..." : "Xác nhận đăng ký"}
-      </button>
-    </form>
-  )
-}
+        {/* Error */}
+        {error && (
+          <p className="text-red-600 text-sm bg-red-50 rounded-lg px-3 py-2">{error}</p>
+        )}
 
-function Field({ label, required, error, children }) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium text-gray-700">
-        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
-      </label>
-      {children}
-      {error && <p className="text-xs text-red-600">{error}</p>}
+        {/* Actions */}
+        <div className="flex gap-2 pt-1">
+          <Button
+            type="button"
+            variant="outline"
+            className="flex-1 rounded-full"
+            onClick={() => setOpen(false)}
+            disabled={loading}
+          >
+            Hủy
+          </Button>
+          <Button
+            type="submit"
+            className="flex-1 rounded-full font-bold"
+            disabled={loading}
+          >
+            {loading ? "Đang gửi..." : "Xác nhận đăng ký"}
+          </Button>
+        </div>
+      </form>
     </div>
   )
-}
-
-function inputCls(error) {
-  return [
-    "w-full rounded-lg border px-3.5 py-2.5 text-sm text-gray-900",
-    "placeholder:text-gray-400 outline-none transition-colors",
-    "focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
-    error
-      ? "border-red-400 bg-red-50 focus:ring-red-500 focus:border-red-500"
-      : "border-gray-300 bg-white hover:border-gray-400",
-  ].join(" ")
 }

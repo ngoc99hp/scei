@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { CalendarDays, Users, CheckCircle2, ArrowLeft, ArrowRight, Clock } from "lucide-react"
 import { ProgramJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
+import ProgramApplyForm from "@/components/forms/program-apply-form"
 
 const BASE = process.env.NEXT_PUBLIC_SITE_URL
 
@@ -111,11 +112,7 @@ export default async function ProgramDetailPage({ params }) {
                 </div>
 
                 {isOpen ? (
-                  <Link href={`/contact?program=${program.slug}`}>
-                    <Button className="w-full rounded-full font-bold h-11">
-                      Đăng ký ngay <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </Link>
+                  <ProgramApplyForm programId={program.id} programName={program.name} />
                 ) : (
                   <Button className="w-full rounded-full font-bold h-11" disabled>
                     {program.status === "CLOSED" ? "Đã đóng đăng ký" : "Chưa mở đăng ký"}
