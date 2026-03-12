@@ -22,6 +22,8 @@
 /* Tailwind v4 engine */
 @import "tailwindcss";
 
+@plugin "@tailwindcss/typography";
+
 /* Animation presets cho dialog, accordion, toast, dropdown */
 @import "tw-animate-css";
 

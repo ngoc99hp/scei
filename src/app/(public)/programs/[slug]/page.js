@@ -1,58 +1,90 @@
 // src/app/(public)/programs/[slug]/page.js
-import Link from "next/link"
-import { notFound } from "next/navigation"
-import { getProgramBySlug, getProgramApplicationCount } from "@/lib/queries/programs"
-import Image from "next/image"
-import { Container } from "@/components/ui/container"
-import { Section } from "@/components/ui/section"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { CalendarDays, Users, CheckCircle2, ArrowLeft, ArrowRight, Clock } from "lucide-react"
-import { ProgramJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
-import ProgramApplyForm from "@/components/forms/program-apply-form"
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import {
+  getProgramBySlug,
+  getProgramApplicationCount,
+} from "@/lib/queries/programs";
+import Image from "next/image";
+import { Container } from "@/components/ui/container";
+import { Section } from "@/components/ui/section";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  CalendarDays,
+  Users,
+  CheckCircle2,
+  ArrowLeft,
+  ArrowRight,
+  Clock,
+} from "lucide-react";
+import { ProgramJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld";
+import ProgramApplyForm from "@/components/forms/program-apply-form";
+import RichTextRenderer from "@/components/rich-text-renderer";
 
-const BASE = process.env.NEXT_PUBLIC_SITE_URL
+const BASE = process.env.NEXT_PUBLIC_SITE_URL;
 
-import { generateProgramStaticParams } from "@/lib/generate-static-params"
-export const generateStaticParams = generateProgramStaticParams
+import { generateProgramStaticParams } from "@/lib/generate-static-params";
+export const generateStaticParams = generateProgramStaticParams;
 
-export const revalidate = 3600
+export const revalidate = 3600;
 
 export async function generateMetadata({ params }) {
-  const { slug } = await params
-  const program = await getProgramBySlug(slug)
-  if (!program) return {}
-  const url = `${BASE}/programs/${slug}`
+  const { slug } = await params;
+  const program = await getProgramBySlug(slug);
+  if (!program) return {};
+  const url = `${BASE}/programs/${slug}`;
   return {
     title: `${program.name} — SCEI`,
     description: program.short_desc,
     alternates: { canonical: url },
-    openGraph: { title: program.name, description: program.short_desc, url, images: program.cover_image ? [program.cover_image] : [] },
-  }
+    openGraph: {
+      title: program.name,
+      description: program.short_desc,
+      url,
+      images: program.cover_image ? [program.cover_image] : [],
+    },
+  };
 }
 
 export default async function ProgramDetailPage({ params }) {
-  const { slug } = await params
-  const program = await getProgramBySlug(slug)
-  if (!program) notFound()
+  const { slug } = await params;
+  const program = await getProgramBySlug(slug);
+  if (!program) notFound();
 
-  const count  = await getProgramApplicationCount(program.id)
-  const isOpen = program.status === "OPEN"
-  const fmt    = (d) => d ? new Date(d).toLocaleDateString("vi-VN", { day: "2-digit", month: "long", year: "numeric" }) : null
+  const count = await getProgramApplicationCount(program.id);
+  const isOpen = program.status === "OPEN";
+  const fmt = (d) =>
+    d
+      ? new Date(d).toLocaleDateString("vi-VN", {
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+        })
+      : null;
 
   return (
     <>
       {program.cover_image && (
         <div className="relative h-72 md:h-96 overflow-hidden">
-          <Image src={program.cover_image} alt={program.name} fill className="object-cover" sizes="100vw" />
+          <Image
+            src={program.cover_image}
+            alt={program.name}
+            fill
+            className="object-cover"
+            sizes="100vw"
+          />
           <div className="absolute inset-0 bg-linear-to-t from-background via-background/50 to-transparent" />
         </div>
       )}
 
       <Section className="py-12">
         <Container>
-          <Link href="/programs" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8">
+          <Link
+            href="/programs"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8"
+          >
             <ArrowLeft className="h-4 w-4" /> Quay lại danh sách
           </Link>
 
@@ -60,17 +92,37 @@ export default async function ProgramDetailPage({ params }) {
             <div className="lg:col-span-2 space-y-8">
               <div>
                 <div className="flex flex-wrap items-center gap-3 mb-4">
-                  <Badge variant="outline" className="border-primary text-primary">{program.type}</Badge>
-                  <span className={`inline-flex items-center gap-1.5 text-sm font-medium ${isOpen ? "text-green-600" : "text-muted-foreground"}`}>
-                    <span className={`h-2 w-2 rounded-full ${isOpen ? "bg-green-500" : "bg-gray-400"}`} />
+                  <Badge
+                    variant="outline"
+                    className="border-primary text-primary"
+                  >
+                    {program.type}
+                  </Badge>
+                  <span
+                    className={`inline-flex items-center gap-1.5 text-sm font-medium ${isOpen ? "text-green-600" : "text-muted-foreground"}`}
+                  >
+                    <span
+                      className={`h-2 w-2 rounded-full ${isOpen ? "bg-green-500" : "bg-gray-400"}`}
+                    />
                     {isOpen ? "Đang mở đăng ký" : program.status}
                   </span>
                 </div>
-                <h1 className="text-3xl md:text-4xl font-bold tracking-tight">{program.name}</h1>
-                <p className="mt-4 text-lg text-muted-foreground leading-relaxed">{program.short_desc}</p>
+                <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+                  {program.name}
+                </h1>
+                <p className="mt-4 text-lg text-muted-foreground leading-relaxed">
+                  {program.short_desc}
+                </p>
               </div>
 
-              <div className="whitespace-pre-line text-foreground/80 leading-relaxed">{program.description}</div>
+              {/* <div className="whitespace-pre-line text-foreground/80 leading-relaxed">{program.description}</div> */}
+              {program.content ? (
+                <RichTextRenderer html={program.content} />
+              ) : (
+                <div className="whitespace-pre-line text-foreground/80 leading-relaxed">
+                  {program.description}
+                </div>
+              )}
 
               {program.requirements?.length > 0 && (
                 <div>
@@ -94,31 +146,56 @@ export default async function ProgramDetailPage({ params }) {
                   {program.apply_deadline && (
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Clock className="h-4 w-4 text-primary" />
-                      <span>Hạn đăng ký: <strong className="text-foreground">{fmt(program.apply_deadline)}</strong></span>
+                      <span>
+                        Hạn đăng ký:{" "}
+                        <strong className="text-foreground">
+                          {fmt(program.apply_deadline)}
+                        </strong>
+                      </span>
                     </div>
                   )}
                   {program.start_date && (
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <CalendarDays className="h-4 w-4 text-primary" />
-                      <span>Bắt đầu: <strong className="text-foreground">{fmt(program.start_date)}</strong></span>
+                      <span>
+                        Bắt đầu:{" "}
+                        <strong className="text-foreground">
+                          {fmt(program.start_date)}
+                        </strong>
+                      </span>
                     </div>
                   )}
                   {program.max_applicants && (
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Users className="h-4 w-4 text-primary" />
-                      <span>Số suất: <strong className="text-foreground">{program.max_applicants}</strong></span>
+                      <span>
+                        Số suất:{" "}
+                        <strong className="text-foreground">
+                          {program.max_applicants}
+                        </strong>
+                      </span>
                     </div>
                   )}
                 </div>
 
                 {isOpen ? (
-                  <ProgramApplyForm programId={program.id} programName={program.name} />
+                  <ProgramApplyForm
+                    programId={program.id}
+                    programName={program.name}
+                  />
                 ) : (
-                  <Button className="w-full rounded-full font-bold h-11" disabled>
-                    {program.status === "CLOSED" ? "Đã đóng đăng ký" : "Chưa mở đăng ký"}
+                  <Button
+                    className="w-full rounded-full font-bold h-11"
+                    disabled
+                  >
+                    {program.status === "CLOSED"
+                      ? "Đã đóng đăng ký"
+                      : "Chưa mở đăng ký"}
                   </Button>
                 )}
-                <p className="text-xs text-muted-foreground text-center mt-3">Miễn phí · Không lấy cổ phần</p>
+                <p className="text-xs text-muted-foreground text-center mt-3">
+                  Miễn phí · Không lấy cổ phần
+                </p>
               </Card>
 
               {program.benefits?.length > 0 && (
@@ -147,11 +224,13 @@ export default async function ProgramDetailPage({ params }) {
         startDate={program.start_date}
         endDate={program.end_date}
       />
-      <BreadcrumbJsonLd items={[
-        { name: "Trang chủ",    href: "/" },
-        { name: "Chương trình", href: "/programs" },
-        { name: program.name,   href: `/programs/${slug}` },
-      ]} />
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Trang chủ", href: "/" },
+          { name: "Chương trình", href: "/programs" },
+          { name: program.name, href: `/programs/${slug}` },
+        ]}
+      />
     </>
-  )
+  );
 }

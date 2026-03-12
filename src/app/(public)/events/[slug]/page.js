@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, MapPin, Clock, Users } from "lucide-react";
 import { EventJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld";
 import EventRegisterForm from "@/components/forms/event-register-form";
+import RichTextRenderer from "@/components/rich-text-renderer";
 
 import { generateEventStaticParams } from "@/lib/generate-static-params";
 export const generateStaticParams = generateEventStaticParams;
@@ -123,9 +124,16 @@ export default async function EventDetailPage({ params }) {
                 </p>
               </div>
 
-              <div className="whitespace-pre-line text-foreground/80 leading-relaxed">
+              {/* <div className="whitespace-pre-line text-foreground/80 leading-relaxed">
                 {event.description}
-              </div>
+              </div> */}
+              {event.content ? (
+                <RichTextRenderer html={event.content} />
+              ) : (
+                <div className="whitespace-pre-line text-foreground/80 leading-relaxed">
+                  {event.description}
+                </div>
+              )}
 
               {event.tags?.length > 0 && (
                 <div className="flex flex-wrap gap-2">
