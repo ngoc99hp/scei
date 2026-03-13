@@ -153,7 +153,7 @@ export default function MentorEditPage() {
         <div className="space-y-4">
           {/* Avatar */}
           <FormSection title="Avatar" description="Ảnh đại diện — vuông, khuyến nghị 400×400px">
-            <div className="max-w-[200px]">
+            <div className="max-w-50">
               <ImageUpload
                 value={fields.avatar}
                 onChange={url => set("avatar", url)}

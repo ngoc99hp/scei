@@ -125,7 +125,7 @@ function StatCard({ label, value, icon: Icon, color, bg, href, badge }) {
         <Icon size={16} className={color} />
       </div>
 
-      <ArrowRight size={14} className="absolute bottom-3 right-3 text-muted-foreground/30 group-hover:text-primary/50 group-hover:translate-x-0.5 transition-all" />
+      {/* <ArrowRight size={14} className="absolute bottom-3 right-3 text-muted-foreground/30 group-hover:text-primary/50 group-hover:translate-x-0.5 transition-all" /> */}
     </Link>
   )
 }

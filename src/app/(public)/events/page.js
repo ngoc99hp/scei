@@ -520,7 +520,7 @@ export default async function EventsPage({ searchParams }) {
                   ) : (
                     <div className="h-full min-h-64 w-full bg-primary/20" />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-r from-slate-950/80 to-transparent" />
 
                   {/* Countdown-style date display (dùng start_date thật) */}
                   <FeaturedEventDateDisplay startDate={featured.start_date} />
@@ -745,19 +745,19 @@ function FeaturedEventDateDisplay({ startDate }) {
   return (
     <div className="absolute bottom-8 left-8 right-8 text-white hidden sm:block">
       <div className="flex gap-4">
-        <div className="bg-white/10 backdrop-blur-md rounded-lg p-3 text-center min-w-[70px] border border-white/20">
+        <div className="bg-white/10 backdrop-blur-md rounded-lg p-3 text-center min-w-17.5 border border-white/20">
           <div className="text-2xl font-bold">
             {String(d.getDate()).padStart(2, "0")}
           </div>
           <div className="text-[10px] uppercase tracking-wider opacity-70">Ngày</div>
         </div>
-        <div className="bg-white/10 backdrop-blur-md rounded-lg p-3 text-center min-w-[70px] border border-white/20">
+        <div className="bg-white/10 backdrop-blur-md rounded-lg p-3 text-center min-w-17.5 border border-white/20">
           <div className="text-2xl font-bold">
             {String(d.getMonth() + 1).padStart(2, "0")}
           </div>
           <div className="text-[10px] uppercase tracking-wider opacity-70">Tháng</div>
         </div>
-        <div className="bg-white/10 backdrop-blur-md rounded-lg p-3 text-center min-w-[70px] border border-white/20">
+        <div className="bg-white/10 backdrop-blur-md rounded-lg p-3 text-center min-w-17.5 border border-white/20">
           <div className="text-2xl font-bold">{d.getFullYear()}</div>
           <div className="text-[10px] uppercase tracking-wider opacity-70">Năm</div>
         </div>

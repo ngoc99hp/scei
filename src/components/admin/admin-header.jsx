@@ -91,11 +91,11 @@ export function AdminHeader({ onMenuClick }) {
             <span key={crumb.href} className="flex items-center gap-1 min-w-0">
               {i > 0 && <ChevronRight size={13} className="text-muted-foreground/40 shrink-0" />}
               {crumb.isLast ? (
-                <span className="font-semibold text-foreground truncate max-w-[200px]">
+                <span className="font-semibold text-foreground truncate max-w-50">
                   {crumb.label}
                 </span>
               ) : (
-                <span className="text-muted-foreground truncate max-w-[120px] hover:text-foreground transition-colors cursor-default">
+                <span className="text-muted-foreground truncate max-w-30 hover:text-foreground transition-colors cursor-default">
                   {crumb.label}
                 </span>
               )}

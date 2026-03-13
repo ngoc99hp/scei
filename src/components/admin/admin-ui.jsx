@@ -56,7 +56,7 @@ export function FilterBar({ searchValue, onSearch, placeholder = "Tìm kiếm...
   return (
     <div className="flex flex-wrap items-center gap-2 mb-4">
       {/* Search */}
-      <div className="relative flex-1 min-w-[200px] max-w-xs">
+      <div className="relative flex-1 min-w-50 max-w-xs">
         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
         <input
           value={searchValue}

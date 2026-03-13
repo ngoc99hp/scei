@@ -69,7 +69,7 @@ export default function RegistrationsPage() {
         <select
           value={eventFilter}
           onChange={e => setEventFilter(e.target.value)}
-          className="h-9 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring min-w-[200px]"
+          className="h-9 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring min-w-50"
         >
           <option value="">Tất cả sự kiện</option>
           {events.map(e => <option key={e.id} value={e.id}>{e.title}</option>)}

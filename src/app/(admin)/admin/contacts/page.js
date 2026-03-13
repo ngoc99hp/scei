@@ -46,7 +46,7 @@ function ContactStatusDropdown({ id, current, onUpdated }) {
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 top-full mt-1 bg-card border border-border rounded-lg shadow-lg z-20 min-w-[140px] py-1">
+          <div className="absolute left-0 top-full mt-1 bg-card border border-border rounded-lg shadow-lg z-20 min-w-35 py-1">
             {nexts.map(s => <button key={s} onClick={() => update(s)} className="w-full text-left px-3 py-1.5 text-xs hover:bg-accent transition-colors">→ {STATUS_LABEL_C[s]}</button>)}
           </div>
         </>

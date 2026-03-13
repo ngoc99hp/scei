@@ -128,7 +128,7 @@ export function AdminSidebar({ collapsed, onToggle, onClose, isMobile }) {
   return (
     <aside className={[
       "flex flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out h-full",
-      collapsed ? "w-[60px]" : "w-[220px]",
+      collapsed ? "w-15" : "w-55",
     ].join(" ")}>
 
       {/* ── Header ── */}
