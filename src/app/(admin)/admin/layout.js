@@ -1,32 +1,25 @@
 // src/app/(admin)/admin/layout.js
-//
-// ✅ FIX redirect loop — Bỏ auth check khỏi layout.
-//
-// Lý do loop xảy ra:
-//   1. proxy.js (withAuth) chặn /admin/* nếu không có token → redirect /admin/login
-//   2. layout.js gọi getServerSession() → không có session → redirect /admin/login
-//   3. Browser hit /admin/login → layout chạy lại → redirect → loop
-//
-// Nguyên tắc: CHỈ một nơi xử lý auth redirect.
-//   → proxy.js đã lo redirect, layout KHÔNG redirect thêm.
-//   → Layout chỉ cần lấy session để pass vào SessionProvider.
-//
-// Defense in depth vẫn đảm bảo vì:
-//   - proxy.js chặn ở edge trước khi request vào layout
-//   - admin/page.js vẫn check session.user.role === "ADMIN"
+// Admin layout — bọc tất cả admin pages với sidebar + header
+// Auth được xử lý bởi proxy.js (middleware), không redirect ở đây
 
 import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth.config"
-import { SessionProvider } from "@/components/session-provider"
+import { authOptions }      from "@/lib/auth.config"
+import { SessionProvider }  from "@/components/session-provider"
+import { AdminShell }       from "@/components/admin/admin-shell"
+
+export const metadata = {
+  title: { template: "%s — SCEI Admin", default: "SCEI Admin" },
+  robots: { index: false, follow: false }, // Không index trang admin
+}
 
 export default async function AdminLayout({ children }) {
-  // Lấy session để pass vào SessionProvider cho Client Components dùng
-  // KHÔNG redirect ở đây — proxy.js đã xử lý rồi
   const session = await getServerSession(authOptions)
 
   return (
     <SessionProvider session={session}>
-      {children}
+      <AdminShell>
+        {children}
+      </AdminShell>
     </SessionProvider>
   )
 }

@@ -1,14 +1,21 @@
 "use client"
 // src/app/(admin)/admin/programs/[id]/edit/page.js
-// Form chỉnh sửa chương trình — có Tiptap editor cho cột content
-// Route: /admin/programs/[id]/edit
+// GHI ĐÈ file cũ — bổ sung: cover_image, date fields, benefits, requirements, tags
 
 import { useState, useEffect } from "react"
-import { useParams } from "next/navigation"
-import RichTextEditor from "@/components/admin/rich-text-editor"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft, Save, Eye } from "lucide-react"
+import { useParams, useRouter } from "next/navigation"
+import dynamic from "next/dynamic"
 import Link from "next/link"
+import { ExternalLink } from "lucide-react"
+import {
+  PageHeader, FormSection, Field, inputCls, SaveBar,
+} from "@/components/admin/admin-ui"
+import { ImageUpload } from "@/components/admin/image-upload"
+
+const RichTextEditor = dynamic(
+  () => import("@/components/admin/rich-text-editor"),
+  { ssr: false, loading: () => <div className="h-64 rounded-xl bg-muted animate-pulse" /> }
+)
 
 const STATUS_OPTIONS = [
   { value: "DRAFT",     label: "Nháp" },
@@ -16,172 +23,235 @@ const STATUS_OPTIONS = [
   { value: "CLOSED",    label: "Đã đóng" },
   { value: "COMPLETED", label: "Đã hoàn thành" },
 ]
-
 const TYPE_OPTIONS = [
   { value: "INCUBATION",   label: "Ươm tạo" },
   { value: "ACCELERATION", label: "Tăng tốc" },
   { value: "COWORKING",    label: "Co-working" },
 ]
 
-export default function ProgramEditPage() {
-  const { id } = useParams()
+function toDate(d) {
+  if (!d) return ""
+  return new Date(d).toISOString().split("T")[0]
+}
 
-  const [loading,  setLoading]  = useState(true)
-  const [saving,   setSaving]   = useState(false)
-  const [error,    setError]    = useState("")
-  const [success,  setSuccess]  = useState(false)
-  const [fields,   setFields]   = useState({
-    name: "", slug: "", type: "INCUBATION", status: "DRAFT",
-    short_desc: "", description: "", content: "",
-    max_applicants: "", is_published: false, is_featured: false,
-  })
+function slugify(s) {
+  return s.toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d").replace(/[^a-z0-9\s-]/g, "")
+    .trim().replace(/\s+/g, "-").replace(/-+/g, "-")
+}
+
+const INIT = {
+  name: "", slug: "", type: "INCUBATION", status: "DRAFT",
+  short_desc: "", description: "", content: "",
+  cover_image: "",
+  benefits: "", requirements: "",
+  start_date: "", end_date: "", apply_deadline: "",
+  max_applicants: "",
+  tags: "",
+  is_published: false, is_featured: false, display_order: 0,
+}
+
+export default function ProgramEditPage() {
+  const { id }  = useParams()
+  const router  = useRouter()
+  const isNew   = id === "new"
+
+  const [loading,   setLoading]   = useState(!isNew)
+  const [saving,    setSaving]    = useState(false)
+  const [error,     setError]     = useState("")
+  const [success,   setSuccess]   = useState(false)
+  const [fields,    setFields]    = useState(INIT)
+  const [autoSlug,  setAutoSlug]  = useState(isNew)
 
   useEffect(() => {
+    if (isNew) return
     fetch(`/api/admin/programs/${id}`)
       .then(r => r.json())
-      .then(data => {
-        if (data.program) {
-          setFields({
-            name:           data.program.name           ?? "",
-            slug:           data.program.slug           ?? "",
-            type:           data.program.type           ?? "INCUBATION",
-            status:         data.program.status         ?? "DRAFT",
-            short_desc:     data.program.short_desc     ?? "",
-            description:    data.program.description    ?? "",
-            content:        data.program.content        ?? "",
-            max_applicants: data.program.max_applicants?.toString() ?? "",
-            is_published:   data.program.is_published   ?? false,
-            is_featured:    data.program.is_featured    ?? false,
-          })
-        }
+      .then(({ program: p }) => {
+        if (p) setFields({
+          name:           p.name           ?? "",
+          slug:           p.slug           ?? "",
+          type:           p.type           ?? "INCUBATION",
+          status:         p.status         ?? "DRAFT",
+          short_desc:     p.short_desc     ?? "",
+          description:    p.description    ?? "",
+          content:        p.content        ?? "",
+          cover_image:    p.cover_image    ?? "",
+          benefits:       p.benefits       ?? "",
+          requirements:   p.requirements   ?? "",
+          start_date:     toDate(p.start_date),
+          end_date:       toDate(p.end_date),
+          apply_deadline: toDate(p.apply_deadline),
+          max_applicants: p.max_applicants?.toString() ?? "",
+          tags:           (p.tags ?? []).join(", "),
+          is_published:   p.is_published   ?? false,
+          is_featured:    p.is_featured    ?? false,
+          display_order:  p.display_order  ?? 0,
+        })
         setLoading(false)
       })
-      .catch(() => { setError("Không thể tải dữ liệu."); setLoading(false) })
-  }, [id])
+      .catch(() => setLoading(false))
+  }, [id, isNew])
 
+  function set(name, value) {
+    setFields(prev => {
+      const next = { ...prev, [name]: value }
+      if (name === "name" && autoSlug) next.slug = slugify(value)
+      return next
+    })
+  }
   function handleChange(e) {
     const { name, value, type, checked } = e.target
-    setFields(prev => ({ ...prev, [name]: type === "checkbox" ? checked : value }))
+    set(name, type === "checkbox" ? checked : value)
   }
 
   async function handleSave() {
-    setSaving(true)
-    setError("")
-    setSuccess(false)
+    setSaving(true); setError(""); setSuccess(false)
+    const body = {
+      ...fields,
+      tags: fields.tags.split(",").map(t => t.trim()).filter(Boolean),
+      max_applicants: fields.max_applicants ? Number(fields.max_applicants) : null,
+      display_order: Number(fields.display_order) || 0,
+    }
+    const url    = isNew ? "/api/admin/programs"      : `/api/admin/programs/${id}`
+    const method = isNew ? "POST"                      : "PATCH"
     try {
-      const res = await fetch(`/api/admin/programs/${id}`, {
-        method:  "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify(fields),
-      })
+      const res  = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
       const data = await res.json()
-      if (!res.ok) setError(data.error || "Lưu thất bại.")
-      else { setSuccess(true); setTimeout(() => setSuccess(false), 3000) }
-    } catch { setError("Lỗi kết nối.") }
-    finally  { setSaving(false) }
+      if (!res.ok) setError(data.error || "Lưu thất bại")
+      else {
+        setSuccess(true); setTimeout(() => setSuccess(false), 3000)
+        if (isNew && data.program?.id) router.replace(`/admin/programs/${data.program.id}/edit`)
+      }
+    } catch { setError("Lỗi kết nối") }
+    finally { setSaving(false) }
   }
 
-  const inputClass = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
-  const labelClass = "block text-sm font-medium text-gray-700 mb-1"
-
-  if (loading) return <div className="p-8 text-gray-500">Đang tải...</div>
+  if (loading) return (
+    <div className="p-5 max-w-4xl mx-auto space-y-4">
+      {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-28 rounded-xl bg-muted animate-pulse" />)}
+    </div>
+  )
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <Link href="/admin/programs" className="text-gray-400 hover:text-gray-600">
-            <ArrowLeft size={20} />
-          </Link>
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">Chỉnh sửa chương trình</h1>
-            <p className="text-sm text-gray-500">{fields.slug}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {fields.slug && fields.is_published && (
-            <Link href={`/programs/${fields.slug}`} target="_blank">
-              <Button variant="outline" size="sm"><Eye size={14} className="mr-1.5" />Xem trang</Button>
+    <div className="max-w-4xl mx-auto pb-24">
+      <div className="p-5">
+        <PageHeader
+          title={isNew ? "Tạo chương trình mới" : "Chỉnh sửa chương trình"}
+          description={fields.slug ? `/${fields.slug}` : ""}
+          backHref="/admin/programs"
+          actions={!isNew && fields.is_published && fields.slug ? (
+            <Link href={`/programs/${fields.slug}`} target="_blank"
+              className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">
+              <ExternalLink size={14} /> Xem trang
             </Link>
-          )}
-          <Button onClick={handleSave} disabled={saving} className="rounded-full">
-            <Save size={14} className="mr-1.5" />{saving ? "Đang lưu..." : "Lưu"}
-          </Button>
+          ) : null}
+        />
+
+        <div className="space-y-4">
+          {/* Thông tin cơ bản */}
+          <FormSection title="Thông tin cơ bản">
+            <Field label="Tên chương trình" required>
+              <input name="name" value={fields.name} onChange={handleChange} className={inputCls} placeholder="Tên chương trình ươm tạo..." />
+            </Field>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Slug (URL)" hint="Tự động tạo từ tên khi tạo mới">
+                <input name="slug" value={fields.slug} onChange={e => { setAutoSlug(false); set("slug", e.target.value) }} className={inputCls} />
+              </Field>
+              <Field label="Loại chương trình">
+                <select name="type" value={fields.type} onChange={handleChange} className={inputCls}>
+                  {TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </Field>
+              <Field label="Trạng thái">
+                <select name="status" value={fields.status} onChange={handleChange} className={inputCls}>
+                  {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </Field>
+              <Field label="Số đơn tối đa" hint="Để trống = không giới hạn">
+                <input name="max_applicants" type="number" min="1" value={fields.max_applicants} onChange={handleChange} className={inputCls} placeholder="50" />
+              </Field>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <Field label="Ngày bắt đầu">
+                <input name="start_date" type="date" value={fields.start_date} onChange={handleChange} className={inputCls} />
+              </Field>
+              <Field label="Ngày kết thúc">
+                <input name="end_date" type="date" value={fields.end_date} onChange={handleChange} className={inputCls} />
+              </Field>
+              <Field label="Hạn nộp đơn">
+                <input name="apply_deadline" type="date" value={fields.apply_deadline} onChange={handleChange} className={inputCls} />
+              </Field>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Tags" hint="Phân cách bằng dấu phẩy">
+                <input name="tags" value={fields.tags} onChange={handleChange} className={inputCls} placeholder="AI, fintech, startup" />
+              </Field>
+              <Field label="Thứ tự hiển thị" hint="Số nhỏ hơn hiển thị trước">
+                <input name="display_order" type="number" min="0" value={fields.display_order} onChange={handleChange} className={inputCls} />
+              </Field>
+            </div>
+            <div className="flex items-center gap-5 pt-1">
+              {[
+                { name: "is_published", label: "Đã publish" },
+                { name: "is_featured",  label: "Nổi bật (trang chủ)" },
+              ].map(cb => (
+                <label key={cb.name} className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                  <input type="checkbox" name={cb.name} checked={fields[cb.name]} onChange={handleChange}
+                    className="w-4 h-4 rounded border-input accent-primary" />
+                  {cb.label}
+                </label>
+              ))}
+            </div>
+          </FormSection>
+
+          {/* Ảnh bìa */}
+          <FormSection title="Ảnh bìa" description="Khuyến nghị 1200×675px (tỉ lệ 16:9)">
+            <ImageUpload
+              value={fields.cover_image}
+              onChange={url => set("cover_image", url)}
+              type="program"
+              slug={fields.slug}
+              aspect="landscape"
+            />
+          </FormSection>
+
+          {/* Mô tả ngắn */}
+          <FormSection title="Mô tả ngắn" description="Dùng cho card preview và SEO (plain text, tối đa 300 ký tự)">
+            <textarea name="short_desc" value={fields.short_desc} onChange={handleChange}
+              rows={3} maxLength={300} className={`${inputCls} resize-none`}
+              placeholder="Tóm tắt ngắn gọn về chương trình..." />
+            <p className="text-xs text-muted-foreground text-right">{fields.short_desc.length}/300</p>
+          </FormSection>
+
+          {/* Quyền lợi & Yêu cầu */}
+          <FormSection title="Quyền lợi & Yêu cầu" description="Hiển thị trong trang đăng ký — dùng plain text hoặc danh sách đơn giản">
+            <Field label="Quyền lợi tham gia (benefits)" hint="Mỗi dòng một quyền lợi, hoặc viết tự do">
+              <textarea name="benefits" value={fields.benefits} onChange={handleChange}
+                rows={4} className={`${inputCls} resize-none`}
+                placeholder={"- Nhận hỗ trợ tài chính lên đến 50 triệu đồng\n- Kết nối với mạng lưới 200+ mentor\n- Văn phòng làm việc miễn phí 6 tháng"} />
+            </Field>
+            <Field label="Yêu cầu đăng ký (requirements)" hint="Điều kiện để tham gia chương trình">
+              <textarea name="requirements" value={fields.requirements} onChange={handleChange}
+                rows={4} className={`${inputCls} resize-none`}
+                placeholder={"- Startup giai đoạn pre-seed hoặc seed\n- Ít nhất 2 thành viên founding team\n- Có MVP hoặc prototype"} />
+            </Field>
+          </FormSection>
+
+          {/* Nội dung chi tiết */}
+          <FormSection title="Nội dung chi tiết" description="Hiển thị trên trang chi tiết chương trình — hỗ trợ định dạng phong phú">
+            <RichTextEditor
+              value={fields.content}
+              onChange={html => set("content", html)}
+              placeholder="Giới thiệu chương trình, lịch trình, quy trình tuyển chọn..."
+              minHeight={350}
+            />
+          </FormSection>
         </div>
       </div>
 
-      {error   && <div className="mb-4 bg-red-50 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>}
-      {success && <div className="mb-4 bg-green-50 text-green-700 px-4 py-3 rounded-lg text-sm">✅ Đã lưu thành công!</div>}
-
-      <div className="space-y-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-          <h2 className="font-semibold text-gray-900">Thông tin cơ bản</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <label className={labelClass}>Tên chương trình <span className="text-red-500">*</span></label>
-              <input name="name" value={fields.name} onChange={handleChange} className={inputClass} />
-            </div>
-            <div>
-              <label className={labelClass}>Slug (URL)</label>
-              <input name="slug" value={fields.slug} onChange={handleChange} className={inputClass} />
-            </div>
-            <div>
-              <label className={labelClass}>Loại chương trình</label>
-              <select name="type" value={fields.type} onChange={handleChange} className={inputClass}>
-                {TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className={labelClass}>Trạng thái</label>
-              <select name="status" value={fields.status} onChange={handleChange} className={inputClass}>
-                {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className={labelClass}>Số đơn tối đa</label>
-              <input name="max_applicants" type="number" value={fields.max_applicants} onChange={handleChange} className={inputClass} placeholder="Để trống = không giới hạn" />
-            </div>
-            <div className="flex items-center gap-4 col-span-2">
-              <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                <input type="checkbox" name="is_published" checked={fields.is_published} onChange={handleChange} className="rounded" />
-                Đã publish
-              </label>
-              <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                <input type="checkbox" name="is_featured" checked={fields.is_featured} onChange={handleChange} className="rounded" />
-                Nổi bật (hiển thị trang chủ)
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
-          <div>
-            <h2 className="font-semibold text-gray-900">Mô tả ngắn</h2>
-            <p className="text-xs text-gray-500 mt-0.5">Dùng cho card preview và SEO meta (plain text, tối đa 300 ký tự)</p>
-          </div>
-          <textarea
-            name="short_desc"
-            value={fields.short_desc}
-            onChange={handleChange}
-            rows={2}
-            maxLength={300}
-            className={`${inputClass} resize-none`}
-          />
-          <p className="text-xs text-gray-400 text-right">{fields.short_desc.length}/300</p>
-        </div>
-
-        <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
-          <div>
-            <h2 className="font-semibold text-gray-900">Nội dung chi tiết</h2>
-            <p className="text-xs text-gray-500 mt-0.5">Hiển thị trên trang chi tiết chương trình — hỗ trợ định dạng phong phú</p>
-          </div>
-          <RichTextEditor
-            value={fields.content}
-            onChange={(html) => setFields(prev => ({ ...prev, content: html }))}
-            placeholder="Giới thiệu chương trình, quy trình, quyền lợi..."
-          />
-        </div>
-      </div>
+      <SaveBar saving={saving} success={success} error={error} onSave={handleSave} />
     </div>
   )
 }
