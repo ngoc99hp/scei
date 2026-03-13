@@ -1,219 +1,78 @@
-"use client"
+// src/app/(public)/contact/page.js
+//
+// ✅ FIX Critical #5 — Loại bỏ duplicate form implementation
+//
+//    TRƯỚC (BUG): Page này tự implement form logic với useState, handleSubmit,
+//    song song với src/components/forms/contact-form.jsx đã làm đúng việc đó.
+//    → Hai implementation diverge theo thời gian, bug fix ở 1 nơi không áp dụng cho nơi kia.
+//    → "use client" cho toàn page làm mất Server Component benefits (hero section static).
+//
+//    SAU (FIX):
+//    - Page là Server Component (không có "use client")
+//    - Static parts (hero, info cards) render server-side → nhanh hơn
+//    - Form logic delegate hoàn toàn cho <ContactForm /> client component
 
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import { Container } from "@/components/ui/container"
-import { Section } from "@/components/ui/section"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { PageHeader } from "@/components/ui/page-header"
-import { Mail, Phone, MapPin, Linkedin, Facebook, Send, Building2, UserCircle2, Handshake } from "lucide-react"
+import ContactForm from "@/components/forms/contact-form"
 
-const contactFormSchema = z.object({
-  fullName: z.string().min(2, "Họ tên phải có ít nhất 2 ký tự"),
-  organization: z.string().optional(),
-  email: z.string().email("Email không hợp lệ"),
-  phone: z.string().min(10, "Số điện thoại không hợp lệ"),
-  subject: z.string().min(1, "Vui lòng chọn chủ đề"),
-  message: z.string().min(10, "Nội dung phải có ít nhất 10 ký tự"),
-})
+// Metadata cho SEO
+export const metadata = {
+  title: "Liên hệ — SCEI",
+  description: "Liên hệ với SCEI để được tư vấn về chương trình khởi nghiệp, hợp tác và các dịch vụ hỗ trợ startup.",
+}
 
+const INFO_CARDS = [
+  { icon: "📍", label: "Địa chỉ",    value: "123 Đường ABC, TP.HP" },
+  { icon: "📞", label: "Điện thoại", value: "028 1234 5678" },
+  { icon: "✉️", label: "Email",      value: "hello@scei.vn" },
+]
+
+// ✅ Không có "use client" — đây là Server Component
 export default function ContactPage() {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    reset,
-  } = useForm({
-    resolver: zodResolver(contactFormSchema),
-  })
-
-  const onSubmit = async (data) => {
-    // Mock API call
-    console.log("Form data:", data)
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    alert("Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi sớm nhất có thể.")
-    reset()
-  }
-
   return (
-    <>
-      {/* Hero Section */}
-      <Section className="bg-gradient-to-b from-muted/50 to-background py-14">
-        <Container>
-          <PageHeader
-            title="Liên hệ & Hỗ trợ"
-            description="Chúng tôi luôn sẵn sàng lắng nghe và đồng hành cùng bạn trên hành trình đổi mới sáng tạo."
-          />
-        </Container>
-      </Section>
+    <main className="min-h-screen py-16 px-4 bg-gray-50">
+      <div className="max-w-2xl mx-auto">
 
-      {/* Stakeholder Quick Links */}
-      <Section className="py-12 border-y border-border bg-muted/20">
-        <Container>
-          <div className="grid gap-6 md:grid-cols-3">
-            <Card className="p-6 flex flex-col items-center text-center space-y-4 hover:shadow-md transition-shadow">
-              <div className="p-3 bg-primary/10 rounded-full text-primary">
-                <UserCircle2 size={32} />
+        {/* Header — static, render server-side */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Liên hệ</h1>
+          <p className="text-gray-600">
+            Chúng tôi luôn sẵn sàng lắng nghe. Hãy gửi câu hỏi hoặc yêu cầu của bạn.
+          </p>
+        </div>
+
+        {/* Contact Info Cards — static, render server-side */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+          {INFO_CARDS.map((info) => (
+            <div
+              key={info.label}
+              className="bg-primary/10 border border-primary/20 rounded-xl p-4 text-center"
+            >
+              <div className="text-2xl mb-2" aria-hidden="true">
+                {info.icon}
               </div>
-              <div>
-                <h3 className="font-bold text-lg">Dành cho Startups</h3>
-                <p className="text-sm text-muted-foreground mt-2">Đăng ký tham gia các chương trình ươm tạo và tăng tốc.</p>
-              </div>
-              <Button variant="outline" size="sm" className="w-full">Đăng ký ngay</Button>
-            </Card>
-
-            <Card className="p-6 flex flex-col items-center text-center space-y-4 hover:shadow-md transition-shadow">
-              <div className="p-3 bg-primary/10 rounded-full text-primary">
-                <Handshake size={32} />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg">Dành cho Mentors</h3>
-                <p className="text-sm text-muted-foreground mt-2">Chia sẻ kinh nghiệm và dẫn dắt thế hệ khởi nghiệp mới.</p>
-              </div>
-              <Button variant="outline" size="sm" className="w-full">Trở thành Mentor</Button>
-            </Card>
-
-            <Card className="p-6 flex flex-col items-center text-center space-y-4 hover:shadow-md transition-shadow">
-              <div className="p-3 bg-primary/10 rounded-full text-primary">
-                <Building2 size={32} />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg">Dành cho Đối tác</h3>
-                <p className="text-sm text-muted-foreground mt-2">Hợp tác xây dựng và phát triển hệ sinh thái sáng tạo.</p>
-              </div>
-              <Button variant="outline" size="sm" className="w-full">Liên hệ hợp tác</Button>
-            </Card>
-          </div>
-        </Container>
-      </Section>
-
-      {/* Main Contact Section (Split Layout) */}
-      <Section className="py-20">
-        <Container>
-          <div className="grid gap-12 lg:grid-cols-2">
-            {/* Left Column: Form */}
-            <div className="space-y-8">
-              <div>
-                <h2 className="text-3xl font-bold">Gửi lời nhắn</h2>
-                <p className="text-muted-foreground mt-2">Điền thông tin dưới đây để đội ngũ SCEI hỗ trợ bạn tốt nhất.</p>
-              </div>
-
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName">Họ và tên</Label>
-                    <Input id="fullName" placeholder="Nguyễn Văn A" {...register("fullName")} />
-                    {errors.fullName && <p className="text-xs text-destructive">{errors.fullName.message}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="organization">Tổ chức / Công ty</Label>
-                    <Input id="organization" placeholder="SCEI" {...register("organization")} />
-                  </div>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" placeholder="example@scei.vn" {...register("email")} />
-                    {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Số điện thoại</Label>
-                    <Input id="phone" placeholder="028 XXXX XXXX" {...register("phone")} />
-                    {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="subject">Chủ đề</Label>
-                  <select
-                    id="subject"
-                    className="flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    {...register("subject")}
-                  >
-                    <option value="">Chọn chủ đề</option>
-                    <option value="hop-tac">Hợp tác chiến lược</option>
-                    <option value="uom-tao">Tham gia chương trình ươm tạo</option>
-                    <option value="ho-tro">Hỗ trợ kỹ thuật</option>
-                    <option value="khac">Khác</option>
-                  </select>
-                  {errors.subject && <p className="text-xs text-destructive">{errors.subject.message}</p>}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="message">Nội dung</Label>
-                  <Textarea id="message" placeholder="Nhập tin nhắn của bạn..." className="min-h-[150px]" {...register("message")} />
-                  {errors.message && <p className="text-xs text-destructive">{errors.message.message}</p>}
-                </div>
-
-                <Button type="submit" size="lg" className="w-full sm:w-auto px-8" disabled={isSubmitting}>
-                  {isSubmitting ? "Đang gửi..." : "Gửi tin nhắn"}
-                  <Send className="ml-2 h-4 w-4" />
-                </Button>
-              </form>
+              <p className="text-xs font-semibold text-primary uppercase tracking-wide mb-1">
+                {info.label}
+              </p>
+              <p className="text-sm text-gray-700">{info.value}</p>
             </div>
+          ))}
+        </div>
 
-            {/* Right Column: Info Cards & Map */}
-            <div className="space-y-8">
-              <div className="grid gap-6">
-                <Card className="p-6 flex items-start space-x-4">
-                  <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                    <MapPin size={24} />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Địa chỉ văn phòng</h4>
-                    <p className="text-sm text-muted-foreground mt-1">Tầng 4, Tòa nhà Innovation, Khu Công nghệ cao, TP. Hồ Chí Minh</p>
-                  </div>
-                </Card>
+        {/* Form Card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+          {/*
+            ✅ FIX — Dùng ContactForm component thay vì implement lại
+            ContactForm đã có:
+            - Honeypot anti-spam
+            - Zod validation
+            - Error handling từ API
+            - Success state
+            - Loading state
+          */}
+          <ContactForm />
+        </div>
 
-                <Card className="p-6 flex items-start space-x-4">
-                  <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                    <Phone size={24} />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Hotline</h4>
-                    <p className="text-sm text-muted-foreground mt-1">+84 28 1234 5678</p>
-                    <p className="text-xs text-muted-foreground">(Thứ 2 - Thứ 6: 8:00 - 17:30)</p>
-                  </div>
-                </Card>
-
-                <Card className="p-6 flex items-start space-x-4">
-                  <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                    <Mail size={24} />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Email hỗ trợ</h4>
-                    <p className="text-sm text-muted-foreground mt-1">contact@scei.com.vn</p>
-                  </div>
-                </Card>
-              </div>
-
-              {/* Social Links */}
-              <div className="flex gap-4">
-                <Button variant="outline" size="icon" className="rounded-full">
-                  <Linkedin size={20} />
-                </Button>
-                <Button variant="outline" size="icon" className="rounded-full">
-                  <Facebook size={20} />
-                </Button>
-              </div>
-
-              {/* Map Placeholder */}
-              <div className="h-[300px] w-full rounded-xl bg-muted animate-pulse flex items-center justify-center border border-border overflow-hidden">
-                <div className="text-center p-6">
-                  <MapPin className="mx-auto h-8 w-8 text-muted-foreground opacity-50 mb-2" />
-                  <p className="text-sm text-muted-foreground">Google Maps Integration Placeholder</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Container>
-      </Section>
-    </>
+      </div>
+    </main>
   )
 }
