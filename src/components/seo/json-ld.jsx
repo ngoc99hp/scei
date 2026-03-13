@@ -97,7 +97,7 @@ export function ArticleJsonLd({
           },
         },
         mainEntityOfPage: {
-          "@type": "@id",
+          "@type": "WebPage",
           "@id":   url,
         },
       }}
@@ -147,7 +147,7 @@ export function EventJsonLd({
         endDate,
         eventStatus:    `https://schema.org/${status}`,
         eventAttendanceMode: `https://schema.org/${schemaMode}`,
-        location: schemaMode === "https://schema.org/OnlineEventAttendanceMode"
+        location: mode === "Online"
           ? { "@type": "VirtualLocation", url }
           : {
               "@type":   "Place",

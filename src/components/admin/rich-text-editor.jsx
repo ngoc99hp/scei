@@ -294,7 +294,7 @@ export default function RichTextEditor({
     <div className={[
       "rte-wrapper flex flex-col border border-gray-200 rounded-xl overflow-hidden bg-white",
       "shadow-sm transition-all duration-200 focus-within:shadow-md focus-within:border-gray-300",
-      fullscreen ? "fixed inset-3 z-[9999] rounded-2xl shadow-2xl border-gray-300" : "",
+      fullscreen ? "fixed inset-3 z-9999 rounded-2xl shadow-2xl border-gray-300" : "",
     ].join(" ")}>
 
       {/* ── Toolbar ── */}

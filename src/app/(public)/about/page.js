@@ -24,19 +24,19 @@ const TEAM_MEMBERS = [
   {
     name:  "Nguyễn Văn A",
     title: "Giám đốc",
-    image: "/team/nguyen-van-a.jpg",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=256&h=256&fit=crop&crop=face",
     bio:   "10 năm kinh nghiệm trong hệ sinh thái khởi nghiệp.",
   },
   {
     name:  "Trần Thị B",
     title: "Phó Giám đốc",
-    image: "/team/tran-thi-b.jpg",
+    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=256&h=256&fit=crop&crop=face",
     bio:   "Chuyên gia về đầu tư mạo hiểm và tăng tốc startup.",
   },
   {
     name:  "Lê Văn C",
     title: "Trưởng phòng Chương trình",
-    image: "/team/le-van-c.jpg",
+    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=256&h=256&fit=crop&crop=face",
     bio:   "Thiết kế và vận hành các chương trình hỗ trợ startup.",
   },
 ]
@@ -57,7 +57,7 @@ export default function AboutPage() {
         {/* Background image — ✅ next/image với fill + priority */}
         <div className="absolute inset-0 -z-10">
           <Image
-            src="/about/hero-bg.jpg"
+            src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1920&h=1080&fit=crop"
             alt=""            // Decorative → alt rỗng
             fill
             className="object-cover opacity-10"
@@ -101,7 +101,7 @@ export default function AboutPage() {
           {/* ✅ PERF FIX — next/image thay thế <img> */}
           <div className="relative aspect-video rounded-2xl overflow-hidden">
             <Image
-              src="/about/mission.jpg"
+              src="https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=1200&h=675&fit=crop"
               alt="Đội ngũ SCEI trong buổi workshop với các startup"
               fill
               className="object-cover"

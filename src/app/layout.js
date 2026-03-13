@@ -11,6 +11,14 @@ import { ThemeProvider }   from "@/components/theme-provider"
 import { SessionProvider } from "@/components/session-provider"
 
 const BASE = process.env.NEXT_PUBLIC_SITE_URL
+// Fail fast tại build time — không fallback silently.
+// Nếu thiếu env này, metadataBase + JSON-LD + OG URLs đều sai.
+if (!BASE) {
+  throw new Error(
+    "[layout.js] NEXT_PUBLIC_SITE_URL chưa được cấu hình.\n" +
+    "Thêm vào .env.local: NEXT_PUBLIC_SITE_URL=https://scei.vn"
+  )
+}
 
 // ── Default Metadata ──────────────────────────────────────────────────────────
 export const metadata = {

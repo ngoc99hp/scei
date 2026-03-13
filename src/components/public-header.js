@@ -20,13 +20,7 @@ export function PublicHeader() {
 
         {/* Right side actions */}
         <div className="flex items-center gap-3 shrink-0">
-          <ThemeToggle />
-          <Link
-            href="/admin"
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Admin
-          </Link>
+          {/* <ThemeToggle /> */}
         </div>
       </nav>
     </header>
