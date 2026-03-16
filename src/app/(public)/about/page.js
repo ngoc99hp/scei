@@ -53,23 +53,26 @@ export default function AboutPage() {
     <main className="min-h-screen">
 
       {/* Hero section */}
-      <section className="relative overflow-hidden bg-linear-to-br from-primary/5 to-primary/10 py-24 px-4">
-        {/* Background image — ✅ next/image với fill + priority */}
-        <div className="absolute inset-0 -z-10">
+      <section className="relative bg-muted/30 py-24 px-4 overflow-hidden border-b border-border">
+        {/* Background image */}
+        <div className="absolute inset-0 z-0">
           <Image
-            src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1920&h=1080&fit=crop"
-            alt=""            // Decorative → alt rỗng
+            src="https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2070&auto=format&fit=crop"
+            alt="About Background"
             fill
-            className="object-cover opacity-10"
-            priority          // Above the fold → preload ngay
+            className="object-cover"
+            priority
             sizes="100vw"
           />
+          <div className="absolute inset-0 bg-black/50" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/10" />
         </div>
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-            Về SCEI
+
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-6">
+            Về <span className="text-primary italic">SCEI</span>
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg text-white/80 max-w-2xl mx-auto leading-relaxed">
             Chúng tôi xây dựng hệ sinh thái khởi nghiệp đổi mới sáng tạo, kết nối startup
             với nguồn lực, kiến thức và mạng lưới cần thiết để phát triển bền vững.
           </p>

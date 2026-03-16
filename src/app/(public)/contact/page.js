@@ -21,9 +21,9 @@ export const metadata = {
 }
 
 const INFO_CARDS = [
-  { icon: "📍", label: "Địa chỉ",    value: "123 Đường ABC, TP.HP" },
-  { icon: "📞", label: "Điện thoại", value: "028 1234 5678" },
-  { icon: "✉️", label: "Email",      value: "hello@scei.vn" },
+  { icon: "📍", label: "Địa chỉ", value: "Số 36, đường Dân lập, phường Lê Chân, thành phố Hải Phòng" },
+  { icon: "📞", label: "Điện thoại", value: "0989 320 383" },
+  { icon: "✉️", label: "Email", value: "hpu@hpu.edu.vn" },
 ]
 
 // ✅ Không có "use client" — đây là Server Component

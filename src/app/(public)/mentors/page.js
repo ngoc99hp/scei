@@ -36,13 +36,26 @@ export default async function MentorsPage({ searchParams }) {
 
   return (
     <>
-      <Section className="relative py-24 overflow-hidden bg-background">
+      <Section className="relative bg-muted/30 py-24 overflow-hidden border-b border-border">
+        {/* Background image */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=2070&auto=format&fit=crop"
+            alt="Mentors Background"
+            fill
+            className="object-cover"
+            priority
+            sizes="100vw"
+          />
+          <div className="absolute inset-0 bg-black/50" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/10" />
+        </div>
         <Container className="relative z-10 text-center max-w-4xl mx-auto">
-          <Badge variant="outline" className="mb-6 border-primary text-primary px-4 py-1 rounded-full font-medium">Mạng lưới chuyên gia</Badge>
-          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl leading-[1.1]">
-            Đội ngũ <span className="text-primary">Cố vấn</span>
+          <Badge variant="outline" className="mb-6 border-white/40 text-white px-4 py-1 rounded-full font-medium bg-background/20 backdrop-blur-sm">Mạng lưới chuyên gia</Badge>
+          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl leading-[1.1] text-white">
+            Đội ngũ <span className="text-primary italic">Cố vấn</span>
           </h1>
-          <p className="mt-8 text-xl text-muted-foreground leading-relaxed">
+          <p className="mt-8 text-xl text-white/80 leading-relaxed">
             Được dẫn dắt bởi những chuyên gia hàng đầu, luôn sẵn sàng chia sẻ kiến thức.
           </p>
         </Container>
@@ -103,7 +116,7 @@ export default async function MentorsPage({ searchParams }) {
               <p className="text-white/80 text-lg">Bạn muốn đóng góp cho sự phát triển của hệ sinh thái khởi nghiệp?</p>
             </div>
             <Link href="/contact">
-              <Button className="px-10 h-14 rounded-full font-bold bg-white text-primary hover:bg-white/90 border-none shadow-lg">
+              <Button variant="primary-inverse" className="px-10 h-14 rounded-full font-bold shadow-lg">
                 Đăng ký ngay <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>

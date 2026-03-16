@@ -30,16 +30,29 @@ export default async function ProgramsPage({ searchParams }) {
   return (
     <>
       {/* Hero */}
-      <Section className="bg-linear-to-b from-muted/50 to-background py-20">
-        <Container>
-          <div className="max-w-3xl">
-            <Badge variant="outline" className="mb-6 border-primary text-primary px-4 py-1 rounded-full font-medium">
+      <Section className="relative bg-muted/30 py-20 overflow-hidden border-b border-border">
+        {/* Background image */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=2070&auto=format&fit=crop"
+            alt="Programs Background"
+            fill
+            className="object-cover"
+            priority
+            sizes="100vw"
+          />
+          <div className="absolute inset-0 bg-black/50" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/10" />
+        </div>
+        <Container className="relative z-10 text-center md:text-left">
+          <div className="max-w-3xl mx-auto md:mx-0">
+            <Badge variant="outline" className="mb-6 border-white/40 text-white px-4 py-1 rounded-full font-medium bg-background/20 backdrop-blur-sm">
               Chương trình SCEI
             </Badge>
-            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl leading-[1.1]">
-              Đồng hành từ <span className="text-primary">ý tưởng đến thành công</span>
+            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl leading-[1.1] text-white">
+              Đồng hành từ <span className="text-primary italic">ý tưởng đến thành công</span>
             </h1>
-            <p className="mt-6 text-xl text-muted-foreground leading-relaxed">
+            <p className="mt-6 text-xl text-white/80 leading-relaxed">
               Chọn chương trình phù hợp với giai đoạn phát triển của startup.
             </p>
           </div>
@@ -92,7 +105,7 @@ export default async function ProgramsPage({ searchParams }) {
             <h2 className="text-3xl font-bold mb-4">Chưa tìm thấy chương trình phù hợp?</h2>
             <p className="text-primary-foreground/80 mb-8 text-lg">Liên hệ để được tư vấn chương trình phù hợp nhất.</p>
             <Link href="/contact">
-              <Button className="bg-white text-primary hover:bg-white/90 px-8 h-12 rounded-full font-bold">
+              <Button variant="primary-inverse" className="px-8 h-12 rounded-full font-bold">
                 Liên hệ tư vấn <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>

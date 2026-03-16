@@ -46,15 +46,31 @@ export default async function NewsPage({ searchParams }) {
   return (
     <>
       {/* Hero */}
-      <div className="bg-linear-to-br from-gray-900 to-gray-700 text-white py-16">
-        <Container>
-          <p className="text-gray-400 text-sm font-medium uppercase tracking-widest mb-3">Tin tức & Kiến thức</p>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Cập nhật từ SCEI</h1>
-          <p className="text-gray-300 text-lg max-w-xl">
-            Tin tức khởi nghiệp, bài học thực tiễn và câu chuyện từ hệ sinh thái đổi mới sáng tạo.
-          </p>
+      <Section className="relative bg-muted/30 py-16 overflow-hidden border-b border-border text-center md:text-left">
+        {/* Background image */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=2070&auto=format&fit=crop"
+            alt="News Background"
+            fill
+            className="object-cover"
+            priority
+            sizes="100vw"
+          />
+          <div className="absolute inset-0 bg-black/50" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/10" />
+        </div>
+
+        <Container className="relative z-10">
+          <div className="max-w-3xl mx-auto md:mx-0">
+            <span className="text-white/60 text-sm font-bold uppercase tracking-widest mb-3 block">Tin tức & Kiến thức</span>
+            <h1 className="text-4xl md:text-5xl font-extrabold mb-4 text-white">Cập nhật từ <span className="text-primary italic">SCEI</span></h1>
+            <p className="text-white/80 text-lg max-w-xl mx-auto md:mx-0">
+              Tin tức khởi nghiệp, bài học thực tiễn và câu chuyện từ hệ sinh thái đổi mới sáng tạo.
+            </p>
+          </div>
         </Container>
-      </div>
+      </Section>
 
       <Section className="py-12">
         <Container>

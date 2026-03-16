@@ -6,21 +6,21 @@ import Link from "next/link"
 
 const footerLinks = {
   "Chương trình": [
-    { label: "Incubation",   href: "/programs" },
+    { label: "Incubation", href: "/programs" },
     { label: "Acceleration", href: "/programs" },
-    { label: "Co-working",   href: "/programs" },
+    { label: "Co-working", href: "/programs" },
   ],
   "Khám phá": [
-    { label: "Startups",   href: "/startups"  },
-    { label: "Mentors",    href: "/mentors"   },
-    { label: "Sự kiện",    href: "/events"    },
-    { label: "Tin tức",    href: "/news"      },  // ✅ Thêm
+    { label: "Startups", href: "/startups" },
+    { label: "Mentors", href: "/mentors" },
+    { label: "Sự kiện", href: "/events" },
+    { label: "Tin tức", href: "/news" },  // ✅ Thêm
     { label: "Tài nguyên", href: "/resources" },  // ✅ Thêm
   ],
   "Liên hệ": [
-    { label: "Email: info@scei.vn",      href: "mailto:info@scei.vn" },
-    { label: "Phone: +84 xxx xxx xxx",   href: "tel:+84xxxxxxxxx"    },
-    { label: "Form liên hệ",             href: "/contact"            },
+    { label: "Email: hpu@hpu.edu.vn", href: "mailto:hpu@hpu.edu.vn" },
+    { label: "Phone: 0989 320 383", href: "tel:+84989320383" },
+    { label: "Form liên hệ", href: "/contact" },
   ],
 }
 
@@ -86,7 +86,7 @@ export function PublicFooter() {
         <div className="mt-8 border-t border-border pt-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-muted-foreground">
           <span>© {new Date().getFullYear()} SCEI. All rights reserved.</span>
           <div className="flex gap-4">
-            <Link href="/about"   className="hover:text-foreground transition-colors">Về chúng tôi</Link>
+            <Link href="/about" className="hover:text-foreground transition-colors">Về chúng tôi</Link>
             <Link href="/contact" className="hover:text-foreground transition-colors">Liên hệ</Link>
           </div>
         </div>

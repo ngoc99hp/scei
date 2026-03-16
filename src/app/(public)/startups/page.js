@@ -15,7 +15,7 @@ import { PaginationControls } from "@/components/ui/pagination"
 export const revalidate = 3600
 
 export default async function StartupsPage({ searchParams }) {
-  const sp   = await searchParams
+  const sp = await searchParams
   const page = parsePage(sp?.page)
 
   const [startups, stats, total] = await Promise.all([
@@ -24,26 +24,39 @@ export default async function StartupsPage({ searchParams }) {
     getStartupCount(),
   ])
 
-  const pager    = buildPagination(total, page, DEFAULT_PAGE_SIZE)
+  const pager = buildPagination(total, page, DEFAULT_PAGE_SIZE)
   const featured = startups.filter(s => s.is_featured)
-  const others   = startups.filter(s => !s.is_featured)
+  const others = startups.filter(s => !s.is_featured)
 
   const statCards = [
-    { label: "Startups năng động", value: `${stats.total}+`,  icon: <Rocket className="h-5 w-5" /> },
-    { label: "Vốn đã huy động",   value: `$${Math.round(stats.totalFunding / 1000)}K+`, icon: <DollarSign className="h-5 w-5" /> },
-    { label: "Việc làm tạo ra",   value: `${stats.totalTeam}+`, icon: <Briefcase className="h-5 w-5" /> },
-    { label: "Tỷ lệ sống sót",    value: "85%", icon: <TrendingUp className="h-5 w-5" /> },
+    { label: "Startups năng động", value: `${stats.total}+`, icon: <Rocket className="h-5 w-5" /> },
+    { label: "Vốn đã huy động", value: `$${Math.round(stats.totalFunding / 1000)}K+`, icon: <DollarSign className="h-5 w-5" /> },
+    { label: "Việc làm tạo ra", value: `${stats.totalTeam}+`, icon: <Briefcase className="h-5 w-5" /> },
+    { label: "Tỷ lệ sống sót", value: "85%", icon: <TrendingUp className="h-5 w-5" /> },
   ]
 
   return (
     <>
-      <Section className="relative py-24 overflow-hidden bg-background">
+      <Section className="relative bg-muted/30 py-24 overflow-hidden border-b border-border">
+        {/* Background image */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop"
+            alt="Startups Background"
+            fill
+            className="object-cover"
+            priority
+            sizes="100vw"
+          />
+          <div className="absolute inset-0 bg-black/50" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/10" />
+        </div>
         <Container className="relative z-10 text-center max-w-4xl mx-auto">
-          <Badge variant="outline" className="mb-6 border-primary text-primary px-4 py-1 rounded-full font-medium">Hệ sinh thái SCEI</Badge>
-          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl leading-[1.1]">
-            Hệ sinh thái <span className="text-primary">Startups</span>
+          <Badge variant="outline" className="mb-6 border-white/40 text-white px-4 py-1 rounded-full font-medium bg-background/20 backdrop-blur-sm">Hệ sinh thái SCEI</Badge>
+          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl leading-[1.1] text-white">
+            Hệ sinh thái <span className="text-primary italic">Startups</span>
           </h1>
-          <p className="mt-8 text-xl text-muted-foreground leading-relaxed">
+          <p className="mt-8 text-xl text-white/80 leading-relaxed">
             Nơi hội tụ những ý tưởng đột phá và những nhà sáng lập đầy khao khát.
           </p>
         </Container>
@@ -137,7 +150,7 @@ export default async function StartupsPage({ searchParams }) {
 
 function StartupCard({ startup }) {
   const status = STARTUP_STATUS_LABEL[startup.status] ?? { label: startup.status, color: "bg-gray-100 text-gray-700" }
-  const stage  = STARTUP_STAGE_LABEL[startup.stage]   ?? startup.stage
+  const stage = STARTUP_STAGE_LABEL[startup.stage] ?? startup.stage
 
   return (
     <Card className="group p-8 border border-border hover:shadow-xl transition-all duration-300">
