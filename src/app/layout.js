@@ -7,8 +7,15 @@
 //    Workaround: inline <script type="application/ld+json"> trực tiếp, không qua component.
 
 import "./globals.css"
+import { Inter } from "next/font/google"
 import { ThemeProvider }   from "@/components/theme-provider"
 import { SessionProvider } from "@/components/session-provider"
+
+const inter = Inter({ 
+  subsets: ["latin", "vietnamese"], 
+  variable: "--font-sans" 
+})
+
 
 const BASE = process.env.NEXT_PUBLIC_SITE_URL
 // Fail fast tại build time — không fallback silently.
@@ -110,7 +117,7 @@ export default function RootLayout({ children }) {
   return (
     // suppressHydrationWarning cần thiết cho next-themes (dark mode)
     <html lang="vi" suppressHydrationWarning>
-      <body className="min-h-screen bg-background text-foreground antialiased">
+      <body className={`min-h-screen bg-background text-foreground antialiased overflow-x-hidden ${inter.variable} font-sans`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

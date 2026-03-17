@@ -118,10 +118,10 @@ export default async function NewsPage({ searchParams }) {
                       </div>
                     )}
                     <div className="p-8 flex flex-col justify-center">
-                      <span className="inline-block text-xs font-semibold uppercase tracking-widest text-blue-600 mb-3">
+                      <span className="inline-block text-xs font-semibold uppercase tracking-widest text-primary mb-3">
                         {featured.category}
                       </span>
-                      <h2 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors line-clamp-3">
+                      <h2 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-primary transition-colors line-clamp-3">
                         {featured.title}
                       </h2>
                       <p className="text-gray-500 text-sm leading-relaxed mb-6 line-clamp-3">{featured.excerpt}</p>
@@ -157,10 +157,10 @@ export default async function NewsPage({ searchParams }) {
                         </div>
                       )}
                       <div className="p-5">
-                        <span className="text-xs font-semibold uppercase tracking-widest text-blue-600 mb-2 block">
+                        <span className="text-xs font-semibold uppercase tracking-widest text-primary mb-2 block">
                           {article.category}
                         </span>
-                        <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                        <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-primary transition-colors">
                           {article.title}
                         </h3>
                         <p className="text-sm text-gray-500 line-clamp-2 mb-4">{article.excerpt}</p>
@@ -169,7 +169,7 @@ export default async function NewsPage({ searchParams }) {
                             <CalendarDays className="w-3.5 h-3.5" />
                             {fmtDate(article.published_at)}
                           </span>
-                          <span className="flex items-center gap-1 text-blue-600 font-medium group-hover:gap-2 transition-all">
+                          <span className="flex items-center gap-1 text-primary font-medium group-hover:gap-2 transition-all">
                             Đọc thêm <ArrowRight className="w-3.5 h-3.5" />
                           </span>
                         </div>

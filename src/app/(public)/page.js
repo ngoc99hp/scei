@@ -160,7 +160,7 @@ export default async function HomePage() {
       {/* ══════════════════════════════════════════════════════════
           [S2-1] HERO — Layout 2 cột + ảnh Unsplash bên phải
           ══════════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden bg-linear-to-br from-blue-700 via-blue-600 to-blue-800 text-white">
+      <section className="relative overflow-hidden bg-linear-to-br from-slate-900 via-indigo-950 to-slate-900 text-white">
         {/* Background — ảnh sự kiện mới nhất, fallback Unsplash */}
         {/* Background decoration — subtle blobs + dot grid */}
         <div
@@ -195,7 +195,7 @@ export default async function HomePage() {
               </div>
 
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-6">
-                Hệ sinh thái khởi nghiệp
+                Hệ sinh thái <span className="whitespace-nowrap">khởi nghiệp</span>
                 {/* [S1-2] Fix contrast — text-white/90 thay text-blue-200 */}
                 <span className="block text-white/85 mt-1">
                   đổi mới sáng tạo
@@ -346,7 +346,7 @@ export default async function HomePage() {
                 className="flex flex-col items-center py-8 px-6 text-center"
               >
                 <Icon
-                  className="w-6 h-6 text-blue-600 mb-3"
+                  className="w-6 h-6 text-primary mb-3"
                   aria-hidden="true"
                 />
                 <dd className="text-3xl font-extrabold text-gray-900 mb-1">
@@ -392,13 +392,13 @@ export default async function HomePage() {
 
             {/* Text side */}
             <div className="order-1 lg:order-2">
-              <p className="text-xs font-bold uppercase tracking-widest text-blue-600 mb-3">
+              <p className="text-xs font-bold uppercase tracking-widest text-primary mb-3">
                 Về chúng tôi
               </p>
               <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-5 leading-tight">
                 Nơi ý tưởng được
                 <br />
-                <span className="text-blue-600">nuôi dưỡng và bứt phá</span>
+                <span className="text-primary">nuôi dưỡng và bứt phá</span>
               </h2>
               <p className="text-gray-500 leading-relaxed mb-6">
                 SCEI là trung tâm hỗ trợ khởi nghiệp đổi mới sáng tạo trực thuộc
@@ -413,7 +413,7 @@ export default async function HomePage() {
                   <div key={title} className="flex gap-4 items-start">
                     <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0 mt-0.5">
                       <Icon
-                        className="w-5 h-5 text-blue-600"
+                        className="w-5 h-5 text-primary"
                         aria-hidden="true"
                       />
                     </div>
@@ -498,13 +498,13 @@ export default async function HomePage() {
                             </span>
                           )}
                         </div>
-                        <h3 className="font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                        <h3 className="font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors">
                           {p.name}
                         </h3>
                         <p className="text-sm text-gray-500 line-clamp-2 mb-4 flex-1">
                           {p.short_desc}
                         </p>
-                        <span className="flex items-center gap-1 text-sm text-blue-600 font-medium group-hover:gap-2 transition-all mt-auto">
+                        <span className="flex items-center gap-1 text-sm text-primary font-medium group-hover:gap-2 transition-all mt-auto">
                           Tìm hiểu thêm <ArrowRight className="w-4 h-4" />
                         </span>
                       </div>
@@ -550,12 +550,12 @@ export default async function HomePage() {
                       </div>
                     ) : (
                       <div className="w-14 h-14 mb-3 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-200 flex items-center justify-center">
-                        <span className="text-xl font-bold text-blue-600">
+                        <span className="text-xl font-bold text-primary">
                           {s.name[0]}
                         </span>
                       </div>
                     )}
-                    <p className="text-xs font-bold text-gray-800 group-hover:text-blue-600 transition-colors line-clamp-1">
+                    <p className="text-xs font-bold text-gray-800 group-hover:text-primary transition-colors line-clamp-1">
                       {s.name}
                     </p>
                     <p className="text-xs text-gray-400 mt-0.5">
@@ -607,7 +607,7 @@ export default async function HomePage() {
                         </div>
                       )}
                     </div>
-                    <p className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                    <p className="font-bold text-gray-900 group-hover:text-primary transition-colors">
                       {m.name}
                     </p>
                     <p className="text-sm text-gray-500 mt-1 line-clamp-1">
@@ -769,7 +769,7 @@ export default async function HomePage() {
                         </div>
                       )}
 
-                      <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                      <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-primary transition-colors">
                         {ev.title}
                       </h3>
                       <p className="text-sm text-gray-500 line-clamp-2 mb-4 flex-1">
@@ -835,10 +835,10 @@ export default async function HomePage() {
                       </div>
                     )}
                     <div className="p-5">
-                      <span className="text-xs font-bold uppercase tracking-widest text-blue-600 mb-2 block">
+                      <span className="text-xs font-bold uppercase tracking-widest text-primary mb-2 block">
                         {a.category}
                       </span>
-                      <h3 className="font-bold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors mb-2">
+                      <h3 className="font-bold text-gray-900 line-clamp-2 group-hover:text-primary transition-colors mb-2">
                         {a.title}
                       </h3>
                       <p className="text-sm text-gray-500 line-clamp-2">
@@ -909,7 +909,7 @@ function SectionHeader({ tag, title, desc, href }) {
   return (
     <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
       <div>
-        <p className="text-xs font-bold uppercase tracking-widest text-blue-600 mb-2">
+        <p className="text-xs font-bold uppercase tracking-widest text-primary mb-2">
           {tag}
         </p>
         <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900">
@@ -920,7 +920,7 @@ function SectionHeader({ tag, title, desc, href }) {
       {href && (
         <Link
           href={href}
-          className="flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:gap-2.5 transition-all whitespace-nowrap"
+          className="flex items-center gap-1.5 text-sm font-semibold text-primary hover:gap-2.5 transition-all whitespace-nowrap"
         >
           Xem tất cả <ArrowRight className="w-4 h-4" />
         </Link>
