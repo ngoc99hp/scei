@@ -167,9 +167,9 @@ export default async function HomePage() {
           className="absolute inset-0 pointer-events-none"
           aria-hidden="true"
         >
-          <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-white/5 blur-3xl" />
+          <div className="absolute -top-40 -right-40 w-150 h-150 rounded-full bg-white/5 blur-3xl" />
           <div className="absolute -bottom-20 -left-20 w-96 h-96 rounded-full bg-indigo-400/20 blur-3xl" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-blue-600/10 blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-200 h-200 rounded-full bg-blue-600/10 blur-3xl" />
           {/* Dot pattern */}
           <div
             className="absolute inset-0 opacity-[0.06]"
@@ -474,7 +474,7 @@ export default async function HomePage() {
                           />
                         </div>
                       ) : (
-                        <div className="h-44 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+                        <div className="h-44 bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
                           <Rocket
                             className="w-12 h-12 text-blue-300"
                             aria-hidden="true"
@@ -550,7 +550,7 @@ export default async function HomePage() {
                       </div>
                     ) : (
                       <div className="w-14 h-14 mb-3 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-200 flex items-center justify-center">
-                        <span className="text-xl font-bold text-primary">
+                        <span className="text-xl font-bold text-blue-600">
                           {s.name[0]}
                         </span>
                       </div>
@@ -600,7 +600,7 @@ export default async function HomePage() {
                           sizes="80px"
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                        <div className="w-full h-full bg-linear-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                           <span className="text-2xl font-bold text-gray-400">
                             {m.name[0]}
                           </span>
@@ -688,7 +688,7 @@ export default async function HomePage() {
                 </div>
 
                 {/* Accent border */}
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-t-2xl" />
+                <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-blue-500 to-indigo-500 rounded-t-2xl" />
               </div>
             ))}
           </div>
@@ -734,7 +734,7 @@ export default async function HomePage() {
                         </div>
                       </div>
                     ) : (
-                      <div className="relative h-40 bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shrink-0 overflow-hidden">
+                      <div className="relative h-40 bg-linear-to-br from-blue-600 to-indigo-700 flex items-center justify-center shrink-0 overflow-hidden">
                         <CalendarDays
                           className="w-12 h-12 text-white/30"
                           aria-hidden="true"
@@ -830,7 +830,7 @@ export default async function HomePage() {
                         />
                       </div>
                     ) : (
-                      <div className="h-44 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                      <div className="h-44 bg-linear-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                         <span className="text-4xl">📰</span>
                       </div>
                     )}
@@ -856,7 +856,7 @@ export default async function HomePage() {
       {/* ══════════════════════════════════════════════════════════
           CTA FINAL — [S1-1] dùng variant button đúng
           ══════════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 text-white py-20 md:py-28">
+      <section className="relative overflow-hidden bg-linear-to-br from-blue-700 via-blue-600 to-indigo-700 text-white py-20 md:py-28">
         <div
           className="absolute inset-0 pointer-events-none"
           aria-hidden="true"

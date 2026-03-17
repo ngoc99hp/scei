@@ -29,7 +29,7 @@ export async function getEvents({
              max_attendees, registered_count, tags, is_featured
       FROM events
       WHERE is_published = true
-        AND status IN ('OPEN', 'DRAFT')
+        AND status IN ('OPEN', 'ONGOING')
         AND start_date >= NOW()
       ORDER BY start_date ASC
       LIMIT ${limit}

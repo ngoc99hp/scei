@@ -1,9 +1,8 @@
-// src/app/api/admin/programs/[id]/route.js
+// src/app/api/admin/contacts/[id]/route.js
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth.config"
 import sql from "@/lib/db"
-
 async function requireAdmin() {
   const s = await getServerSession(authOptions)
   if (!s || s.user.role !== "ADMIN") return null
@@ -12,22 +11,23 @@ async function requireAdmin() {
 export async function GET(req, { params }) {
   if (!await requireAdmin()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   const { id } = await params
-  const rows = await sql`SELECT * FROM programs WHERE id = ${id} LIMIT 1`
+  const rows = await sql`SELECT * FROM contacts WHERE id = ${id} LIMIT 1`
   if (!rows[0]) return NextResponse.json({ error: "Không tìm thấy" }, { status: 404 })
-  return NextResponse.json({ program: rows[0] })
+  return NextResponse.json({ contact: rows[0] })
 }
 export async function PATCH(req, { params }) {
   if (!await requireAdmin()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   const { id } = await params
   let body
   try { body = await req.json() } catch { return NextResponse.json({ error: "Body không hợp lệ" }, { status: 400 }) }
-  const { name, slug, type, status, short_desc, description, content, benefits, requirements, cover_image, start_date, end_date, apply_deadline, max_applicants, is_published, is_featured, display_order } = body
-  await sql`UPDATE programs SET name=${name||null}, slug=${slug||null}, type=${type}::"ProgramType", status=${status}::"ProgramStatus", short_desc=${short_desc||null}, description=${description||null}, content=${content||null}, benefits=${benefits||null}, requirements=${requirements||null}, cover_image=${cover_image||null}, start_date=${start_date||null}, end_date=${end_date||null}, apply_deadline=${apply_deadline||null}, max_applicants=${max_applicants?Number(max_applicants):null}, is_published=${is_published??false}, is_featured=${is_featured??false}, display_order=${display_order??0}, updated_at=now() WHERE id=${id}`
+  const { status, admin_note } = body
+  const repliedAt = status === "REPLIED" ? new Date() : null
+  await sql`UPDATE contacts SET status=${status}::"ContactStatus", admin_note=${admin_note||null}, replied_at=${repliedAt}, updated_at=now() WHERE id=${id}`
   return NextResponse.json({ success: true })
 }
 export async function DELETE(req, { params }) {
   if (!await requireAdmin()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   const { id } = await params
-  await sql`DELETE FROM programs WHERE id = ${id}`
+  await sql`DELETE FROM contacts WHERE id = ${id}`
   return NextResponse.json({ success: true })
 }
