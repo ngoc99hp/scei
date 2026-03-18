@@ -20,53 +20,29 @@ import { DEFAULT_PAGE_SIZE } from "@/lib/constants"
  * @param {{ limit?: number, category?: string, page?: number, pageSize?: number }} opts
  */
 export async function getResources({ limit, category, page, pageSize = DEFAULT_PAGE_SIZE } = {}) {
+  const categoryFilter = category && category !== "all" ? category : null
+  const offset = ((page ?? 1) - 1) * pageSize
 
-  // ── limit + category ─────────────────────────────────────────────────────
-  if (limit !== undefined && category) {
-    return sql`
-      SELECT id, slug, title, description, type, cover_image,
-             category, tags, download_count, external_url, file_url, is_featured
-      FROM resources
-      WHERE is_published = true
-        AND category = ${category}
-      ORDER BY is_featured DESC, created_at DESC
-      LIMIT ${limit}
-    `
-  }
-
-  // ── limit only (no category filter) ─────────────────────────────────────
+  // Nếu có limit (thường dùng lấy featured hoặc list ngắn)
   if (limit !== undefined) {
     return sql`
       SELECT id, slug, title, description, type, cover_image,
              category, tags, download_count, external_url, file_url, is_featured
       FROM resources
       WHERE is_published = true
+        AND (${categoryFilter}::text IS NULL OR type = ${categoryFilter})
       ORDER BY is_featured DESC, created_at DESC
       LIMIT ${limit}
     `
   }
 
-  // ── Paginated + category filter ──────────────────────────────────────────
-  const offset = ((page ?? 1) - 1) * pageSize
-
-  if (category) {
-    return sql`
-      SELECT id, slug, title, description, type, cover_image,
-             category, tags, download_count, external_url, file_url, is_featured
-      FROM resources
-      WHERE is_published = true
-        AND category = ${category}
-      ORDER BY is_featured DESC, created_at DESC
-      LIMIT ${pageSize} OFFSET ${offset}
-    `
-  }
-
-  // ── Paginated, no filter ─────────────────────────────────────────────────
+  // Paginated query
   return sql`
     SELECT id, slug, title, description, type, cover_image,
            category, tags, download_count, external_url, file_url, is_featured
     FROM resources
     WHERE is_published = true
+      AND (${categoryFilter}::text IS NULL OR type = ${categoryFilter})
     ORDER BY is_featured DESC, created_at DESC
     LIMIT ${pageSize} OFFSET ${offset}
   `
@@ -78,21 +54,13 @@ export async function getResources({ limit, category, page, pageSize = DEFAULT_P
  * @param {{ category?: string }} opts
  */
 export async function getResourceCount({ category } = {}) {
-  // ✅ FIX — tách 2 query thay vì nested sql fragment
-  if (category) {
-    const rows = await sql`
-      SELECT COUNT(*) as count
-      FROM resources
-      WHERE is_published = true
-        AND category = ${category}
-    `
-    return Number(rows[0]?.count ?? 0)
-  }
+  const categoryFilter = category && category !== "all" ? category : null
 
   const rows = await sql`
     SELECT COUNT(*) as count
     FROM resources
     WHERE is_published = true
+      AND (${categoryFilter}::text IS NULL OR type = ${categoryFilter})
   `
   return Number(rows[0]?.count ?? 0)
 }

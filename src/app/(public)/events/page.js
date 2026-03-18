@@ -12,9 +12,9 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { PaginationControls } from "@/components/ui/pagination"
+import { CategoryFilter } from "@/components/events/category-filter"
 import { CalendarWidget } from "@/components/events/calendar-widget"
 import {
-  Search,
   Calendar as CalendarIcon,
   MapPin,
   Clock,
@@ -49,59 +49,60 @@ function buildPagination(total, page, pageSize) {
 export default async function EventsPage({ searchParams }) {
   const sp = await searchParams
   const page = parsePage(sp?.page)
-
-  const [events, total] = await Promise.all([
-    getEvents({ page, pageSize: DEFAULT_PAGE_SIZE }),
-    getEventCount(),
+  const type = sp?.type || "all"
+  const [events, total, featuredList] = await Promise.all([
+    getEvents({ 
+      page, 
+      pageSize: DEFAULT_PAGE_SIZE,
+      type,
+    }),
+    getEventCount({ type }),
+    page === 1 ? getEvents({ featured: true, limit: 1 }) : Promise.resolve([]),
   ])
 
   const pager = buildPagination(total, page, DEFAULT_PAGE_SIZE)
-  const featured = page === 1 ? events.find(e => e.is_featured) : null
-  const upcoming = events.filter(e => e.status === "OPEN" || e.status === "ONGOING")
-  const past = events.filter(e => e.status !== "OPEN" && e.status !== "ONGOING")
-
-  // Truyền toàn bộ upcoming events cho CalendarWidget (client component xử lý)
-  // CalendarWidget tự filter theo tháng đang xem + handle click interaction
+  const featured = page === 1 ? featuredList[0] : null
+  const upcoming = events.filter(e => (e.status === "OPEN" || e.status === "ONGOING") && e.id !== featured?.id)
+  const past = events.filter(e => e.status !== "OPEN" && e.status !== "ONGOING" && e.id !== featured?.id)
 
   return (
     <>
       {/* ── Hero Section ── */}
       <Section className="relative bg-muted/30 py-20 overflow-hidden border-b border-border">
-        {/* Background image */}
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="https://images.unsplash.com/photo-1505373877841-8d25f7d46678?q=80&w=2012&auto=format&fit=crop"
-            alt="Events Background"
-            fill
-            className="object-cover"
-            priority
-            sizes="100vw"
-          />
-          <div className="absolute inset-0 bg-black/50" />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/10" />
+        {/* Background grid pattern */}
+        <div className="absolute inset-0 z-0 opacity-10">
+          <svg
+            className="h-full w-full"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M0 0 L100 0 L100 100 L0 100 Z"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="0.5"
+              strokeDasharray="2,2"
+            />
+            <path
+              d="M0 20 L100 20 M0 40 L100 40 M0 60 L100 60 M0 80 L100 80 M20 0 L20 100 M40 0 L40 100 M60 0 L60 100 M80 0 L80 100"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="0.5"
+              strokeDasharray="1,1"
+            />
+          </svg>
         </div>
 
         <Container className="relative z-10">
           <div className="max-w-3xl">
-            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl text-white">
+            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl text-foreground">
               Trung tâm kết nối{" "}
               <span className="text-primary italic">tri thức</span> khởi nghiệp
             </h1>
-            <p className="mt-6 text-xl text-white/80 leading-relaxed">
-              Khám phá các sự kiện, workshop và chương trình đào tạo chuyên sâu dành
-              riêng cho cộng đồng đổi mới sáng tạo.
+            <p className="mt-6 text-xl text-muted-foreground leading-relaxed">
+              Khám phá các sự kiện, workshop và chương trình đào tạo chuyên sâu
+              dành riêng cho cộng đồng đổi mới sáng tạo.
             </p>
-
-            {/* Search bar — UI giữ nguyên, filter thật dùng server search params */}
-            <div className="mt-10 flex max-w-md items-center gap-2 rounded-xl bg-background p-2 shadow-lg border border-border">
-              <Search className="ml-2 h-5 w-5 text-muted-foreground" />
-              <EventSearchInput />
-              <Link href="/events">
-                <Button size="icon" className="shrink-0 rounded-lg">
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
           </div>
         </Container>
       </Section>
@@ -143,9 +144,11 @@ export default async function EventsPage({ searchParams }) {
                   <Badge className="w-fit bg-primary hover:bg-primary text-white border-none mb-6">
                     Featured Event
                   </Badge>
-                  <h3 className="text-3xl lg:text-4xl font-bold leading-tight">
-                    {featured.title}
-                  </h3>
+                    <Link href={`/events/${featured.slug}`} className="hover:text-primary transition-colors">
+                      <h3 className="text-3xl lg:text-4xl font-bold leading-tight">
+                        {featured.title}
+                      </h3>
+                    </Link>
                   <p className="mt-6 text-slate-300 leading-relaxed text-lg">
                     {featured.short_desc}
                   </p>
@@ -181,32 +184,30 @@ export default async function EventsPage({ searchParams }) {
       )}
 
       {/* ── Event Grid — Sắp diễn ra ── */}
-      {upcoming.length > 0 && (
-        <Section className="py-16 bg-muted/10">
-          <Container>
-            {/* Category filter tabs — hiển thị các type thực tế có trong data */}
-            <CategoryFilterBar events={events} />
+      <Section className="py-16 bg-muted/10">
+        <Container>
+          {/* Category filter — Component mới */}
+          <CategoryFilter />
 
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 mt-8">
-              {upcoming.map(e => (
-                <EventCard key={e.id} event={e} />
-              ))}
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 mt-8">
+            {upcoming.map(e => (
+              <EventCard key={e.id} event={e} />
+            ))}
+          </div>
+
+          {upcoming.length === 0 && (
+            <div className="py-20 text-center">
+              <Users className="mx-auto h-12 w-12 text-muted-foreground opacity-20 mb-4" />
+              <h3 className="text-xl font-semibold text-muted-foreground">
+                Không tìm thấy sự kiện phù hợp
+              </h3>
+              <p className="mt-2 text-muted-foreground">
+                Vui lòng thử bộ lọc hoặc từ khóa tìm kiếm khác.
+              </p>
             </div>
-
-            {upcoming.length === 0 && (
-              <div className="py-20 text-center">
-                <Users className="mx-auto h-12 w-12 text-muted-foreground opacity-20 mb-4" />
-                <h3 className="text-xl font-semibold text-muted-foreground">
-                  Không tìm thấy sự kiện phù hợp
-                </h3>
-                <p className="mt-2 text-muted-foreground">
-                  Vui lòng thử bộ lọc hoặc từ khóa tìm kiếm khác.
-                </p>
-              </div>
-            )}
-          </Container>
-        </Section>
-      )}
+          )}
+        </Container>
+      </Section>
 
       {/* ── Calendar & CTA Section ── */}
       <Section className="py-20 border-t border-border">
@@ -294,7 +295,11 @@ export default async function EventsPage({ searchParams }) {
       {pager.pages > 1 && (
         <Section className="py-8">
           <Container>
-            <PaginationControls pager={pager} basePath="/events" />
+            <PaginationControls 
+              pager={pager} 
+              basePath="/events" 
+              searchParams={{ type }}
+            />
           </Container>
         </Section>
       )}
@@ -303,50 +308,6 @@ export default async function EventsPage({ searchParams }) {
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
-
-/**
- * Search input — "use client" vì cần onChange.
- * Tách nhỏ để page chính vẫn là Server Component.
- */
-function EventSearchInput() {
-  // Server-side: chỉ render input tĩnh.
-  // Nếu muốn live filter, tạo file riêng với "use client".
-  return (
-    <input
-      name="q"
-      type="text"
-      placeholder="Tìm kiếm sự kiện..."
-      className="flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground"
-    />
-  )
-}
-
-/**
- * Category filter bar — hiển thị các loại event thực tế có trong data.
- * Là Server Component (chỉ render buttons tĩnh, không cần state).
- */
-function CategoryFilterBar({ events }) {
-  const types = ["Tất cả", ...new Set(events.map(e => EVENT_TYPE_LABEL[e.type] ?? e.type))]
-
-  return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-      <div className="flex flex-wrap gap-2">
-        {types.map(type => (
-          <Button
-            key={type}
-            variant={type === "Tất cả" ? "primary" : "outline"}
-            className="rounded-full px-6"
-          >
-            {type}
-          </Button>
-        ))}
-      </div>
-      <Button variant="ghost" className="text-muted-foreground flex items-center gap-2">
-        <Filter size={18} /> Lọc nâng cao
-      </Button>
-    </div>
-  )
-}
 
 /**
  * Featured event date display — giống countdown widget thiết kế gốc
@@ -451,9 +412,11 @@ function EventCard({ event, past = false }) {
           })}
         </div>
 
-        <h3 className="text-xl font-bold leading-tight group-hover:text-primary transition-colors cursor-pointer line-clamp-2">
-          {event.title}
-        </h3>
+        <Link href={`/events/${event.slug}`}>
+          <h3 className="text-xl font-bold leading-tight group-hover:text-primary transition-colors line-clamp-2">
+            {event.title}
+          </h3>
+        </Link>
 
         <div className="mt-4 space-y-2 text-sm text-muted-foreground border-t border-border pt-4">
           <div className="flex items-center gap-2">
@@ -496,10 +459,10 @@ function EventCard({ event, past = false }) {
             <Button
               variant="ghost"
               size="sm"
-              className="font-bold p-0 text-primary hover:bg-transparent flex items-center gap-1 group/btn"
+              className="font-bold p-0 text-primary hover:bg-transparent hover:text-primary flex items-center gap-1"
             >
               {past ? "Xem lại" : "Chi tiết"}
-              <ChevronRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
+              <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Button>
           </Link>
         </div>

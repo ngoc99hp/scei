@@ -19,7 +19,12 @@ export async function getEvents({
   upcomingOnly,
   page,
   pageSize = DEFAULT_PAGE_SIZE,
+  type,
+  q,
 } = {}) {
+  const typeFilter = type && type !== "all" ? type : null
+  const searchFilter = q ? `%${q}%` : null
+  const isFeaturedFilter = featured !== undefined ? featured : null
 
   // ── upcomingOnly + limit (dùng cho homepage widget) ──────────────────────
   if (upcomingOnly && limit) {
@@ -36,53 +41,36 @@ export async function getEvents({
     `
   }
 
-  // ── limit + featured filter (dùng cho section widget) ────────────────────
-  // FIX: neon không hỗ trợ interpolate sql`` lồng nhau nên phải tách 2 query
-  if (limit !== undefined) {
-    if (featured !== undefined) {
-      return sql`
-        SELECT id, slug, title, type, status, short_desc, cover_image,
-               start_date, end_date, is_online, location,
-               max_attendees, registered_count, tags, is_featured
-        FROM events
-        WHERE is_published = true
-          AND is_featured = ${featured}
-        ORDER BY start_date ASC
-        LIMIT ${limit}
-      `
-    }
-    return sql`
-      SELECT id, slug, title, type, status, short_desc, cover_image,
-             start_date, end_date, is_online, location,
-             max_attendees, registered_count, tags, is_featured
-      FROM events
-      WHERE is_published = true
-      ORDER BY start_date ASC
-      LIMIT ${limit}
-    `
-  }
-
-  // ── Paginated full list (dùng cho /events page) ───────────────────────────
+  // ── Paginated or Limited list with filters ───────────────────────────────
   const offset = ((page ?? 1) - 1) * pageSize
+
   return sql`
     SELECT id, slug, title, type, status, short_desc, cover_image,
            start_date, end_date, is_online, location,
            max_attendees, registered_count, tags, is_featured
     FROM events
     WHERE is_published = true
+      AND (${typeFilter}::text IS NULL OR type = ${typeFilter})
+      AND (${searchFilter}::text IS NULL OR title ILIKE ${searchFilter} OR short_desc ILIKE ${searchFilter})
+      AND (${isFeaturedFilter}::boolean IS NULL OR is_featured = ${isFeaturedFilter})
     ORDER BY is_featured DESC, start_date ASC
-    LIMIT ${pageSize} OFFSET ${offset}
+    LIMIT ${limit ?? pageSize} OFFSET ${offset}
   `
 }
 
 /**
  * Đếm tổng events đã publish (dùng cho pagination)
  */
-export async function getEventCount() {
+export async function getEventCount({ type, q } = {}) {
+  const typeFilter = type && type !== "all" ? type : null
+  const searchFilter = q ? `%${q}%` : null
+
   const rows = await sql`
     SELECT COUNT(*) as count
     FROM events
     WHERE is_published = true
+      AND (${typeFilter}::text IS NULL OR type = ${typeFilter})
+      AND (${searchFilter}::text IS NULL OR title ILIKE ${searchFilter} OR short_desc ILIKE ${searchFilter})
   `
   return Number(rows[0]?.count ?? 0)
 }

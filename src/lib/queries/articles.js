@@ -7,43 +7,16 @@ import sql from "@/lib/db"
  * @param {{ limit?: number, offset?: number, category?: string }} opts
  */
 export async function getArticles({ limit, offset = 0, category } = {}) {
-  if (category && limit !== undefined) {
-    return sql`
-      SELECT id, slug, title, excerpt, cover_image,
-             category, tags, published_at, view_count
-      FROM articles
-      WHERE status = 'PUBLISHED' AND category = ${category}
-      ORDER BY published_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `
-  }
-  if (category) {
-    return sql`
-      SELECT id, slug, title, excerpt, cover_image,
-             category, tags, published_at, view_count
-      FROM articles
-      WHERE status = 'PUBLISHED' AND category = ${category}
-      ORDER BY published_at DESC
-      OFFSET ${offset}
-    `
-  }
-  if (limit !== undefined) {
-    return sql`
-      SELECT id, slug, title, excerpt, cover_image,
-             category, tags, published_at, view_count
-      FROM articles
-      WHERE status = 'PUBLISHED'
-      ORDER BY published_at DESC
-      LIMIT ${limit} OFFSET ${offset}
-    `
-  }
+  const categoryFilter = category && category !== "all" ? category : null
+
   return sql`
     SELECT id, slug, title, excerpt, cover_image,
            category, tags, published_at, view_count
     FROM articles
     WHERE status = 'PUBLISHED'
+      AND (${categoryFilter}::text IS NULL OR category = ${categoryFilter})
     ORDER BY published_at DESC
-    OFFSET ${offset}
+    LIMIT ${limit ?? 100} OFFSET ${offset}
   `
 }
 
@@ -52,16 +25,12 @@ export async function getArticles({ limit, offset = 0, category } = {}) {
  * @param {{ category?: string }} opts
  */
 export async function getArticleCount({ category } = {}) {
-  if (category) {
-    const rows = await sql`
-      SELECT COUNT(*) as count FROM articles
-      WHERE status = 'PUBLISHED' AND category = ${category}
-    `
-    return Number(rows[0]?.count ?? 0)
-  }
+  const categoryFilter = category && category !== "all" ? category : null
+
   const rows = await sql`
     SELECT COUNT(*) as count FROM articles
     WHERE status = 'PUBLISHED'
+      AND (${categoryFilter}::text IS NULL OR category = ${categoryFilter})
   `
   return Number(rows[0]?.count ?? 0)
 }

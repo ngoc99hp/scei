@@ -18,13 +18,7 @@ export const metadata = {
   description: "Cập nhật tin tức khởi nghiệp, bài viết kiến thức và câu chuyện thành công từ hệ sinh thái SCEI.",
 }
 
-const CATEGORIES = [
-  { value: "",           label: "Tất cả" },
-  { value: "tin-tuc",    label: "Tin tức" },
-  { value: "kien-thuc",  label: "Kiến thức" },
-  { value: "startup",    label: "Startup" },
-  { value: "su-kien",    label: "Sự kiện" },
-]
+import { NewsCategoryFilter } from "@/components/news/news-category-filter"
 
 const fmtDate = (d) =>
   d ? new Date(d).toLocaleDateString("vi-VN", { day: "2-digit", month: "long", year: "numeric" }) : ""
@@ -32,16 +26,23 @@ const fmtDate = (d) =>
 export default async function NewsPage({ searchParams }) {
   const sp       = await searchParams
   const page     = parsePage(sp?.page)
-  const category = sp?.category ?? ""
+  const category = sp?.category ?? "all"
 
-  const [articles, total] = await Promise.all([
-    getArticles({ limit: DEFAULT_PAGE_SIZE, offset: (page - 1) * DEFAULT_PAGE_SIZE, category: category || undefined }),
-    getArticleCount({ category: category || undefined }),
+  // Fetch featured independently on page 1 if no category, or handle accordingly
+  // For consistency with events, we fetch the MOST RECENT article as featured if on page 1
+  const [articles, total, featuredList] = await Promise.all([
+    getArticles({ 
+      limit: DEFAULT_PAGE_SIZE, 
+      offset: (page - 1) * DEFAULT_PAGE_SIZE, 
+      category: category 
+    }),
+    getArticleCount({ category: category }),
+    page === 1 ? getArticles({ limit: 1 }) : Promise.resolve([]),
   ])
 
   const pager    = buildPagination(total, page, DEFAULT_PAGE_SIZE)
-  const featured = page === 1 && !category ? articles[0] : null
-  const rest     = page === 1 && !category ? articles.slice(1) : articles
+  const featured = page === 1 ? featuredList[0] : null
+  const filteredArticles = articles.filter(a => a.id !== featured?.id)
 
   return (
     <>
@@ -74,26 +75,8 @@ export default async function NewsPage({ searchParams }) {
 
       <Section className="py-12">
         <Container>
-          {/* Category filter */}
-          <div className="flex flex-wrap gap-2 mb-10">
-            {CATEGORIES.map(cat => {
-              const isActive = category === cat.value
-              return (
-                <Link
-                  key={cat.value}
-                  href={cat.value ? `/news?category=${cat.value}` : "/news"}
-                  className={[
-                    "rounded-full px-4 py-1.5 text-sm font-medium border transition-colors",
-                    isActive
-                      ? "bg-gray-900 text-white border-gray-900"
-                      : "bg-white text-gray-600 border-gray-200 hover:border-gray-400",
-                  ].join(" ")}
-                >
-                  {cat.label}
-                </Link>
-              )
-            })}
-          </div>
+          {/* Category filter — Component mới */}
+          <NewsCategoryFilter />
 
           {articles.length === 0 ? (
             <div className="text-center py-20 text-gray-400">
@@ -102,7 +85,7 @@ export default async function NewsPage({ searchParams }) {
             </div>
           ) : (
             <>
-              {/* Featured article (trang 1, không filter) */}
+              {/* Featured article (trang 1) */}
               {featured && (
                 <Link href={`/news/${featured.slug}`} className="group block mb-12">
                   <div className="grid md:grid-cols-2 gap-8 rounded-2xl overflow-hidden border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all bg-white">
@@ -142,7 +125,7 @@ export default async function NewsPage({ searchParams }) {
 
               {/* Article grid */}
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {rest.map(article => (
+                {filteredArticles.map(article => (
                   <Link key={article.id} href={`/news/${article.slug}`} className="group">
                     <Card className="h-full overflow-hidden hover:shadow-md transition-shadow">
                       {article.cover_image && (

@@ -17,27 +17,20 @@ export const metadata = {
   description: "Kho tài liệu, template, ebook và công cụ hỗ trợ khởi nghiệp miễn phí từ SCEI.",
 }
 
-const RESOURCE_TYPES = [
-  { value: "",         label: "Tất cả" },
-  { value: "DOCUMENT", label: "Tài liệu" },
-  { value: "VIDEO",    label: "Video" },
-  { value: "TEMPLATE", label: "Template" },
-  { value: "TOOL",     label: "Công cụ" },
-  { value: "EBOOK",    label: "Ebook" },
-]
+import { ResourceCategoryFilter } from "@/components/resources/resource-category-filter"
 
 export default async function ResourcesPage({ searchParams }) {
-  const sp       = await searchParams
-  const page     = parsePage(sp?.page)
-  const category = sp?.type ?? ""
+  const sp = await searchParams
+  const page = parsePage(sp?.page)
+  const category = sp?.type ?? "all"
 
   const [resources, total] = await Promise.all([
-    getResources({ page, pageSize: DEFAULT_PAGE_SIZE, category: category || undefined }),
-    getResourceCount({ category: category || undefined }),
+    getResources({ page, pageSize: DEFAULT_PAGE_SIZE, category: category }),
+    getResourceCount({ category: category }),
   ])
 
   const pager = buildPagination(total, page, DEFAULT_PAGE_SIZE)
-
+  // console.log(resources)
   return (
     <>
       {/* Hero */}
@@ -57,28 +50,8 @@ export default async function ResourcesPage({ searchParams }) {
 
       <Section className="py-12">
         <Container>
-          {/* Type filter */}
-          <div className="flex flex-wrap gap-2 mb-10">
-            {RESOURCE_TYPES.map(t => {
-              const isActive = category === t.value
-              const info = t.value ? RESOURCE_TYPE_LABEL[t.value] : null
-              return (
-                <Link
-                  key={t.value}
-                  href={t.value ? `/resources?type=${t.value}` : "/resources"}
-                  className={[
-                    "rounded-full px-4 py-1.5 text-sm font-medium border transition-colors",
-                    isActive
-                      ? "bg-emerald-600 text-white border-emerald-600"
-                      : "bg-white text-gray-600 border-gray-200 hover:border-gray-400",
-                  ].join(" ")}
-                >
-                  {info?.icon && <span className="mr-1.5">{info.icon}</span>}
-                  {t.label}
-                </Link>
-              )
-            })}
-          </div>
+          {/* Type filter — Component mới */}
+          <ResourceCategoryFilter />
 
           {resources.length === 0 ? (
             <div className="text-center py-20 text-gray-400">
