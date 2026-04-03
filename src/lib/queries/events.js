@@ -34,9 +34,6 @@ export async function getEvents({
     `
   }
 
-<<<<<<< HEAD
-  // ── Paginated or Limited list with filters ───────────────────────────────
-=======
   // ── limit + featured filter (dùng cho section widget) ────────────────────
   if (limit !== undefined) {
     if (featured !== undefined) {
@@ -63,7 +60,6 @@ export async function getEvents({
   }
 
   // ── Paginated full list (dùng cho /events page) ───────────────────────────
->>>>>>> 5640f9a64a9b0b3d9c9b1d2e327f30af826fe6f6
   const offset = ((page ?? 1) - 1) * pageSize
 
   return sql`
