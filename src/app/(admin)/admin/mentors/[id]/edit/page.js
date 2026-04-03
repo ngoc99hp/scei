@@ -1,6 +1,5 @@
 "use client"
 // src/app/(admin)/admin/mentors/[id]/edit/page.js
-// Dùng chung cho tạo mới (id="new") và edit
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
@@ -32,14 +31,14 @@ function slugify(s) {
 const INIT = {
   name: "", slug: "",
   title: "", organization: "",
-  expertise: "", bio: "", short_bio: "",
+  expertise: "", bio: "", shortBio: "",
   email: "",
-  linkedin_url: "", facebook_url: "", website: "",
-  years_exp: "",
+  linkedinUrl: "", facebookUrl: "", website: "",
+  yearsExp: "",
   avatar: "",
   tags: "",
   status: "ACTIVE",
-  is_published: false, is_featured: false, display_order: 0,
+  isPublished: false, isFeatured: false, displayOrder: 0,
 }
 
 export default function MentorEditPage() {
@@ -60,34 +59,34 @@ export default function MentorEditPage() {
       .then(r => r.json())
       .then(({ mentor: m }) => {
         if (m) setFields({
-          name:          m.name          ?? "",
-          slug:          m.slug          ?? "",
-          title:         m.title         ?? "",
-          organization:  m.organization  ?? "",
-          expertise:     m.expertise     ?? "",
-          bio:           m.bio           ?? "",
-          short_bio:     m.short_bio     ?? "",
-          email:         m.email         ?? "",
-          linkedin_url:  m.linkedin_url  ?? "",
-          facebook_url:  m.facebook_url  ?? "",
-          website:       m.website       ?? "",
-          years_exp:     m.years_exp?.toString() ?? "",
-          avatar:        m.avatar        ?? "",
-          tags:          (m.tags ?? []).join(", "),
-          status:        m.status        ?? "ACTIVE",
-          is_published:  m.is_published  ?? false,
-          is_featured:   m.is_featured   ?? false,
-          display_order: m.display_order ?? 0,
+          name:         m.name          ?? "",
+          slug:         m.slug          ?? "",
+          title:        m.title         ?? "",
+          organization: m.organization  ?? "",
+          expertise:    m.expertise     ?? "",
+          bio:          m.bio           ?? "",
+          shortBio:     m.short_bio     ?? "",
+          email:        m.email         ?? "",
+          linkedinUrl:  m.linkedin_url  ?? "",
+          facebookUrl:  m.facebook_url  ?? "",
+          website:      m.website       ?? "",
+          yearsExp:     m.years_exp?.toString() ?? "",
+          avatar:       m.avatar        ?? "",
+          tags:         (m.tags ?? []).join(", "),
+          status:       m.status        ?? "ACTIVE",
+          isPublished:  m.is_published  ?? false,
+          isFeatured:   m.is_featured   ?? false,
+          displayOrder: m.display_order ?? 0,
         })
         setLoading(false)
       })
       .catch(() => setLoading(false))
   }, [id, isNew])
 
-  function set(name, value) {
+  function set(key, value) {
     setFields(prev => {
-      const next = { ...prev, [name]: value }
-      if (name === "name" && autoSlug) next.slug = slugify(value)
+      const next = { ...prev, [key]: value }
+      if (key === "name" && autoSlug) next.slug = slugify(value)
       return next
     })
   }
@@ -96,7 +95,6 @@ export default function MentorEditPage() {
     set(name, type === "checkbox" ? checked : value)
   }
 
-  // Thêm/bỏ expertise tag
   function toggleExpertise(tag) {
     const current = fields.expertise ? fields.expertise.split(", ").filter(Boolean) : []
     const updated = current.includes(tag)
@@ -108,10 +106,24 @@ export default function MentorEditPage() {
   async function handleSave() {
     setSaving(true); setError(""); setSuccess(false)
     const body = {
-      ...fields,
-      tags: fields.tags.split(",").map(t => t.trim()).filter(Boolean),
-      years_exp: fields.years_exp ? Number(fields.years_exp) : null,
-      display_order: Number(fields.display_order) || 0,
+      name:         fields.name,
+      slug:         fields.slug,
+      title:        fields.title,
+      organization: fields.organization,
+      expertise:    fields.expertise,
+      bio:          fields.bio,
+      shortBio:     fields.shortBio,
+      email:        fields.email,
+      linkedinUrl:  fields.linkedinUrl,
+      facebookUrl:  fields.facebookUrl,
+      website:      fields.website,
+      yearsExp:     fields.yearsExp ? Number(fields.yearsExp) : null,
+      avatar:       fields.avatar,
+      tags:         fields.tags.split(",").map(t => t.trim()).filter(Boolean),
+      status:       fields.status,
+      isPublished:  fields.isPublished,
+      isFeatured:   fields.isFeatured,
+      displayOrder: Number(fields.displayOrder) || 0,
     }
     const url    = isNew ? "/api/admin/mentors"      : `/api/admin/mentors/${id}`
     const method = isNew ? "POST"                     : "PATCH"
@@ -142,7 +154,7 @@ export default function MentorEditPage() {
           title={isNew ? "Thêm mentor mới" : "Chỉnh sửa mentor"}
           description={fields.slug ? `/${fields.slug}` : ""}
           backHref="/admin/mentors"
-          actions={!isNew && fields.is_published && fields.slug ? (
+          actions={!isNew && fields.isPublished && fields.slug ? (
             <Link href={`/mentors/${fields.slug}`} target="_blank"
               className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">
               <ExternalLink size={14} /> Xem trang
@@ -151,7 +163,6 @@ export default function MentorEditPage() {
         />
 
         <div className="space-y-4">
-          {/* Avatar */}
           <FormSection title="Avatar" description="Ảnh đại diện — vuông, khuyến nghị 400×400px">
             <div className="max-w-50">
               <ImageUpload
@@ -165,7 +176,6 @@ export default function MentorEditPage() {
             </div>
           </FormSection>
 
-          {/* Thông tin cơ bản */}
           <FormSection title="Thông tin cơ bản">
             <div className="grid grid-cols-2 gap-4">
               <Field label="Họ tên" required>
@@ -183,7 +193,7 @@ export default function MentorEditPage() {
                 <input name="organization" value={fields.organization} onChange={handleChange} className={inputCls} placeholder="Sequoia Capital SEA" />
               </Field>
               <Field label="Số năm kinh nghiệm">
-                <input name="years_exp" type="number" min="0" value={fields.years_exp} onChange={handleChange} className={inputCls} placeholder="10" />
+                <input name="yearsExp" type="number" min="0" value={fields.yearsExp} onChange={handleChange} className={inputCls} placeholder="10" />
               </Field>
               <Field label="Trạng thái">
                 <select name="status" value={fields.status} onChange={handleChange} className={inputCls}>
@@ -196,13 +206,13 @@ export default function MentorEditPage() {
                 <input name="tags" value={fields.tags} onChange={handleChange} className={inputCls} placeholder="investor, fintech, AI" />
               </Field>
               <Field label="Thứ tự hiển thị">
-                <input name="display_order" type="number" min="0" value={fields.display_order} onChange={handleChange} className={inputCls} />
+                <input name="displayOrder" type="number" min="0" value={fields.displayOrder} onChange={handleChange} className={inputCls} />
               </Field>
             </div>
             <div className="flex items-center gap-5 pt-1">
               {[
-                { name: "is_published", label: "Đã publish" },
-                { name: "is_featured",  label: "Nổi bật (trang chủ)" },
+                { name: "isPublished", label: "Đã publish" },
+                { name: "isFeatured",  label: "Nổi bật (trang chủ)" },
               ].map(cb => (
                 <label key={cb.name} className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
                   <input type="checkbox" name={cb.name} checked={fields[cb.name]} onChange={handleChange}
@@ -213,9 +223,7 @@ export default function MentorEditPage() {
             </div>
           </FormSection>
 
-          {/* Chuyên môn */}
           <FormSection title="Chuyên môn (Expertise)" description="Chọn nhanh hoặc gõ tự do">
-            {/* Quick-pick tags */}
             <div className="flex flex-wrap gap-2 mb-3">
               {EXPERTISE_SUGGESTIONS.map(tag => (
                 <button key={tag} type="button" onClick={() => toggleExpertise(tag)}
@@ -228,19 +236,18 @@ export default function MentorEditPage() {
                 </button>
               ))}
             </div>
-            <Field label="Expertise (text)" hint="Phân cách bằng dấy phẩy — chọn ở trên hoặc gõ tự do">
+            <Field label="Expertise (text)" hint="Phân cách bằng dấu phẩy — chọn ở trên hoặc gõ tự do">
               <input name="expertise" value={fields.expertise} onChange={handleChange} className={inputCls}
                 placeholder="Product Management, AI/ML, Fundraising" />
             </Field>
           </FormSection>
 
-          {/* Bio */}
           <FormSection title="Giới thiệu">
-            <Field label="Giới thiệu ngắn (short_bio)" hint="1-2 dòng, dùng trong card danh sách (tối đa 200 ký tự)">
-              <textarea name="short_bio" value={fields.short_bio} onChange={handleChange}
+            <Field label="Giới thiệu ngắn" hint="1-2 dòng, dùng trong card danh sách (tối đa 200 ký tự)">
+              <textarea name="shortBio" value={fields.shortBio} onChange={handleChange}
                 rows={2} maxLength={200} className={`${inputCls} resize-none`}
                 placeholder="Investor với 15 năm kinh nghiệm tại Silicon Valley và Đông Nam Á." />
-              <p className="text-xs text-muted-foreground text-right">{fields.short_bio.length}/200</p>
+              <p className="text-xs text-muted-foreground text-right">{fields.shortBio.length}/200</p>
             </Field>
             <Field label="Bio đầy đủ" hint="Hiển thị trên trang chi tiết mentor">
               <textarea name="bio" value={fields.bio} onChange={handleChange}
@@ -249,7 +256,6 @@ export default function MentorEditPage() {
             </Field>
           </FormSection>
 
-          {/* Liên hệ & Mạng xã hội */}
           <FormSection title="Liên hệ & Mạng xã hội">
             <div className="grid grid-cols-2 gap-4">
               <Field label="Email (nội bộ — không hiển thị)">
@@ -259,10 +265,10 @@ export default function MentorEditPage() {
                 <input name="website" value={fields.website} onChange={handleChange} className={inputCls} placeholder="https://..." />
               </Field>
               <Field label="LinkedIn">
-                <input name="linkedin_url" value={fields.linkedin_url} onChange={handleChange} className={inputCls} placeholder="https://linkedin.com/in/..." />
+                <input name="linkedinUrl" value={fields.linkedinUrl} onChange={handleChange} className={inputCls} placeholder="https://linkedin.com/in/..." />
               </Field>
               <Field label="Facebook">
-                <input name="facebook_url" value={fields.facebook_url} onChange={handleChange} className={inputCls} placeholder="https://facebook.com/..." />
+                <input name="facebookUrl" value={fields.facebookUrl} onChange={handleChange} className={inputCls} placeholder="https://facebook.com/..." />
               </Field>
             </div>
           </FormSection>

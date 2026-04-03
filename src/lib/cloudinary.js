@@ -146,3 +146,17 @@ export function getImageUrl(publicId, transforms = {}) {
 }
 
 export default cloudinary
+/**
+ * Extract Cloudinary publicId từ secure_url.
+ * VD: "https://res.cloudinary.com/demo/image/upload/v123/scei/events/slug-ts.jpg"
+ *   → "scei/events/slug-ts"
+ * Trả về null nếu URL không phải Cloudinary.
+ * @param {string|null|undefined} url
+ * @returns {string|null}
+ */
+export function extractPublicId(url) {
+  if (!url) return null
+  // Match phần sau /upload/ (bỏ version nếu có) và bỏ extension
+  const match = url.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.[a-z]+)?$/)
+  return match?.[1] ?? null
+}

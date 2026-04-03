@@ -1,6 +1,5 @@
 "use client"
 // src/app/(admin)/admin/programs/[id]/edit/page.js
-// GHI ĐÈ file cũ — bổ sung: cover_image, date fields, benefits, requirements, tags
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
@@ -43,13 +42,13 @@ function slugify(s) {
 
 const INIT = {
   name: "", slug: "", type: "INCUBATION", status: "DRAFT",
-  short_desc: "", description: "", content: "",
-  cover_image: "",
+  shortDesc: "", description: "", content: "",
+  coverImage: "",
   benefits: "", requirements: "",
-  start_date: "", end_date: "", apply_deadline: "",
-  max_applicants: "",
+  startDate: "", endDate: "", applyDeadline: "",
+  maxApplicants: "",
   tags: "",
-  is_published: false, is_featured: false, display_order: 0,
+  isPublished: false, isFeatured: false, displayOrder: 0,
 }
 
 export default function ProgramEditPage() {
@@ -70,34 +69,34 @@ export default function ProgramEditPage() {
       .then(r => r.json())
       .then(({ program: p }) => {
         if (p) setFields({
-          name:           p.name           ?? "",
-          slug:           p.slug           ?? "",
-          type:           p.type           ?? "INCUBATION",
-          status:         p.status         ?? "DRAFT",
-          short_desc:     p.short_desc     ?? "",
-          description:    p.description    ?? "",
-          content:        p.content        ?? "",
-          cover_image:    p.cover_image    ?? "",
-          benefits:       p.benefits       ?? "",
-          requirements:   p.requirements   ?? "",
-          start_date:     toDate(p.start_date),
-          end_date:       toDate(p.end_date),
-          apply_deadline: toDate(p.apply_deadline),
-          max_applicants: p.max_applicants?.toString() ?? "",
-          tags:           (p.tags ?? []).join(", "),
-          is_published:   p.is_published   ?? false,
-          is_featured:    p.is_featured    ?? false,
-          display_order:  p.display_order  ?? 0,
+          name:          p.name           ?? "",
+          slug:          p.slug           ?? "",
+          type:          p.type           ?? "INCUBATION",
+          status:        p.status         ?? "DRAFT",
+          shortDesc:     p.short_desc     ?? "",
+          description:   p.description    ?? "",
+          content:       p.content        ?? "",
+          coverImage:    p.cover_image    ?? "",
+          benefits:      p.benefits       ?? "",
+          requirements:  p.requirements   ?? "",
+          startDate:     toDate(p.start_date),
+          endDate:       toDate(p.end_date),
+          applyDeadline: toDate(p.apply_deadline),
+          maxApplicants: p.max_applicants?.toString() ?? "",
+          tags:          (p.tags ?? []).join(", "),
+          isPublished:   p.is_published   ?? false,
+          isFeatured:    p.is_featured    ?? false,
+          displayOrder:  p.display_order  ?? 0,
         })
         setLoading(false)
       })
       .catch(() => setLoading(false))
   }, [id, isNew])
 
-  function set(name, value) {
+  function set(key, value) {
     setFields(prev => {
-      const next = { ...prev, [name]: value }
-      if (name === "name" && autoSlug) next.slug = slugify(value)
+      const next = { ...prev, [key]: value }
+      if (key === "name" && autoSlug) next.slug = slugify(value)
       return next
     })
   }
@@ -109,10 +108,24 @@ export default function ProgramEditPage() {
   async function handleSave() {
     setSaving(true); setError(""); setSuccess(false)
     const body = {
-      ...fields,
-      tags: fields.tags.split(",").map(t => t.trim()).filter(Boolean),
-      max_applicants: fields.max_applicants ? Number(fields.max_applicants) : null,
-      display_order: Number(fields.display_order) || 0,
+      name:          fields.name,
+      slug:          fields.slug,
+      type:          fields.type,
+      status:        fields.status,
+      shortDesc:     fields.shortDesc,
+      description:   fields.description,
+      content:       fields.content,
+      coverImage:    fields.coverImage,
+      benefits:      fields.benefits,
+      requirements:  fields.requirements,
+      startDate:     fields.startDate     || null,
+      endDate:       fields.endDate       || null,
+      applyDeadline: fields.applyDeadline || null,
+      maxApplicants: fields.maxApplicants ? Number(fields.maxApplicants) : null,
+      tags:          fields.tags.split(",").map(t => t.trim()).filter(Boolean),
+      isPublished:   fields.isPublished,
+      isFeatured:    fields.isFeatured,
+      displayOrder:  Number(fields.displayOrder) || 0,
     }
     const url    = isNew ? "/api/admin/programs"      : `/api/admin/programs/${id}`
     const method = isNew ? "POST"                      : "PATCH"
@@ -141,7 +154,7 @@ export default function ProgramEditPage() {
           title={isNew ? "Tạo chương trình mới" : "Chỉnh sửa chương trình"}
           description={fields.slug ? `/${fields.slug}` : ""}
           backHref="/admin/programs"
-          actions={!isNew && fields.is_published && fields.slug ? (
+          actions={!isNew && fields.isPublished && fields.slug ? (
             <Link href={`/programs/${fields.slug}`} target="_blank"
               className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">
               <ExternalLink size={14} /> Xem trang
@@ -170,18 +183,18 @@ export default function ProgramEditPage() {
                 </select>
               </Field>
               <Field label="Số đơn tối đa" hint="Để trống = không giới hạn">
-                <input name="max_applicants" type="number" min="1" value={fields.max_applicants} onChange={handleChange} className={inputCls} placeholder="50" />
+                <input name="maxApplicants" type="number" min="1" value={fields.maxApplicants} onChange={handleChange} className={inputCls} placeholder="50" />
               </Field>
             </div>
             <div className="grid grid-cols-3 gap-3">
               <Field label="Ngày bắt đầu">
-                <input name="start_date" type="date" value={fields.start_date} onChange={handleChange} className={inputCls} />
+                <input name="startDate" type="date" value={fields.startDate} onChange={handleChange} className={inputCls} />
               </Field>
               <Field label="Ngày kết thúc">
-                <input name="end_date" type="date" value={fields.end_date} onChange={handleChange} className={inputCls} />
+                <input name="endDate" type="date" value={fields.endDate} onChange={handleChange} className={inputCls} />
               </Field>
               <Field label="Hạn nộp đơn">
-                <input name="apply_deadline" type="date" value={fields.apply_deadline} onChange={handleChange} className={inputCls} />
+                <input name="applyDeadline" type="date" value={fields.applyDeadline} onChange={handleChange} className={inputCls} />
               </Field>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -189,13 +202,13 @@ export default function ProgramEditPage() {
                 <input name="tags" value={fields.tags} onChange={handleChange} className={inputCls} placeholder="AI, fintech, startup" />
               </Field>
               <Field label="Thứ tự hiển thị" hint="Số nhỏ hơn hiển thị trước">
-                <input name="display_order" type="number" min="0" value={fields.display_order} onChange={handleChange} className={inputCls} />
+                <input name="displayOrder" type="number" min="0" value={fields.displayOrder} onChange={handleChange} className={inputCls} />
               </Field>
             </div>
             <div className="flex items-center gap-5 pt-1">
               {[
-                { name: "is_published", label: "Đã publish" },
-                { name: "is_featured",  label: "Nổi bật (trang chủ)" },
+                { name: "isPublished", label: "Đã publish" },
+                { name: "isFeatured",  label: "Nổi bật (trang chủ)" },
               ].map(cb => (
                 <label key={cb.name} className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
                   <input type="checkbox" name={cb.name} checked={fields[cb.name]} onChange={handleChange}
@@ -209,8 +222,8 @@ export default function ProgramEditPage() {
           {/* Ảnh bìa */}
           <FormSection title="Ảnh bìa" description="Khuyến nghị 1200×675px (tỉ lệ 16:9)">
             <ImageUpload
-              value={fields.cover_image}
-              onChange={url => set("cover_image", url)}
+              value={fields.coverImage}
+              onChange={url => set("coverImage", url)}
               type="program"
               slug={fields.slug}
               aspect="landscape"
@@ -219,10 +232,10 @@ export default function ProgramEditPage() {
 
           {/* Mô tả ngắn */}
           <FormSection title="Mô tả ngắn" description="Dùng cho card preview và SEO (plain text, tối đa 300 ký tự)">
-            <textarea name="short_desc" value={fields.short_desc} onChange={handleChange}
+            <textarea name="shortDesc" value={fields.shortDesc} onChange={handleChange}
               rows={3} maxLength={300} className={`${inputCls} resize-none`}
               placeholder="Tóm tắt ngắn gọn về chương trình..." />
-            <p className="text-xs text-muted-foreground text-right">{fields.short_desc.length}/300</p>
+            <p className="text-xs text-muted-foreground text-right">{fields.shortDesc.length}/300</p>
           </FormSection>
 
           {/* Quyền lợi & Yêu cầu */}

@@ -1,45 +1,58 @@
 // src/app/api/admin/settings/route.js
-// GET  — lấy toàn bộ site_configs
-// PATCH — cập nhật nhiều keys cùng lúc (upsert)
+import { NextResponse }    from "next/server"
+import sql                 from "@/lib/db"
+import { requireApiAdmin } from "@/lib/auth"
+import { z }               from "zod"
+import { logger }          from "@/lib/logger"
 
-import { NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth.config"
-import sql from "@/lib/db"
-
-async function requireAdmin() {
-  const s = await getServerSession(authOptions)
-  if (!s || s.user.role !== "ADMIN") return null
-  return s
-}
+// Mỗi value phải là string (site_configs lưu string)
+const patchSettingsSchema = z.record(
+  z.string().min(1, "Key không được rỗng"),
+  z.string()
+)
 
 export async function GET(req) {
-  if (!await requireAdmin()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const auth = await requireApiAdmin()
+  if (!auth.ok) return auth.res
+
   const rows = await sql`SELECT key, value, label FROM site_configs ORDER BY key`
-  // Convert to { key: { value, label } }
   const config = {}
   for (const r of rows) config[r.key] = { value: r.value, label: r.label }
   return NextResponse.json({ config })
 }
 
 export async function PATCH(req) {
-  if (!await requireAdmin()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  let body
-  try { body = await req.json() } catch { return NextResponse.json({ error: "Body không hợp lệ" }, { status: 400 }) }
+  const auth = await requireApiAdmin()
+  if (!auth.ok) return auth.res
 
-  // body = { key: value, ... }
-  const entries = Object.entries(body)
+  let body
+  try { body = await req.json() }
+  catch { return NextResponse.json({ error: "Body không hợp lệ" }, { status: 400 }) }
+
+  const parsed = patchSettingsSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Dữ liệu không hợp lệ", details: parsed.error.flatten().fieldErrors },
+      { status: 422 }
+    )
+  }
+
+  const entries = Object.entries(parsed.data)
   if (!entries.length) return NextResponse.json({ success: true })
 
-  // Upsert từng key
-  await Promise.all(
-    entries.map(([key, value]) =>
-      sql`
-        INSERT INTO site_configs (key, value, updated_at)
-        VALUES (${key}, ${String(value)}, now())
-        ON CONFLICT (key) DO UPDATE SET value = ${String(value)}, updated_at = now()
-      `
+  try {
+    await Promise.all(
+      entries.map(([key, value]) =>
+        sql`
+          INSERT INTO site_configs (key, value, updated_at)
+          VALUES (${key}, ${value}, now())
+          ON CONFLICT (key) DO UPDATE SET value = ${value}, updated_at = now()
+        `
+      )
     )
-  )
-  return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    logger.error("PATCH /api/admin/settings failed", err)
+    return NextResponse.json({ error: "Lỗi server" }, { status: 500 })
+  }
 }

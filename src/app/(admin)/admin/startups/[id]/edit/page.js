@@ -1,6 +1,5 @@
 "use client"
 // src/app/(admin)/admin/startups/[id]/edit/page.js
-// Dùng chung cho tạo mới (id="new") và edit
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
@@ -12,11 +11,11 @@ import {
 import { ImageUpload } from "@/components/admin/image-upload"
 
 const STAGE_OPTIONS = [
-  { value: "IDEA",        label: "Idea" },
-  { value: "MVP",         label: "MVP" },
-  { value: "EARLY",       label: "Early Stage" },
-  { value: "GROWTH",      label: "Growth" },
-  { value: "SCALE",       label: "Scale" },
+  { value: "IDEA",   label: "Idea" },
+  { value: "MVP",    label: "MVP" },
+  { value: "EARLY",  label: "Early Stage" },
+  { value: "GROWTH", label: "Growth" },
+  { value: "SCALE",  label: "Scale" },
 ]
 const STATUS_OPTIONS = [
   { value: "INCUBATING",   label: "Đang ươm tạo" },
@@ -40,12 +39,12 @@ const INIT = {
   name: "", slug: "", tagline: "", description: "",
   website: "",
   industry: "", stage: "IDEA", status: "INCUBATING",
-  founded_year: "", team_size: "", funding_raised: "",
-  logo: "", cover_image: "",
-  founder_name: "", founder_email: "", founder_linkedin: "",
-  linkedin_url: "", facebook_url: "",
+  foundedYear: "", teamSize: "", fundingRaised: "",
+  logo: "", coverImage: "",
+  founderName: "", founderEmail: "", founderLinkedin: "",
+  linkedinUrl: "", facebookUrl: "",
   tags: "",
-  is_published: false, is_featured: false, display_order: 0,
+  isPublished: false, isFeatured: false, displayOrder: 0,
 }
 
 export default function StartupEditPage() {
@@ -66,38 +65,38 @@ export default function StartupEditPage() {
       .then(r => r.json())
       .then(({ startup: s }) => {
         if (s) setFields({
-          name:             s.name             ?? "",
-          slug:             s.slug             ?? "",
-          tagline:          s.tagline          ?? "",
-          description:      s.description      ?? "",
-          website:          s.website          ?? "",
-          industry:         s.industry         ?? "",
-          stage:            s.stage            ?? "IDEA",
-          status:           s.status           ?? "INCUBATING",
-          founded_year:     s.founded_year?.toString() ?? "",
-          team_size:        s.team_size?.toString()    ?? "",
-          funding_raised:   s.funding_raised   ?? "",
-          logo:             s.logo             ?? "",
-          cover_image:      s.cover_image      ?? "",
-          founder_name:     s.founder_name     ?? "",
-          founder_email:    s.founder_email    ?? "",
-          founder_linkedin: s.founder_linkedin ?? "",
-          linkedin_url:     s.linkedin_url     ?? "",
-          facebook_url:     s.facebook_url     ?? "",
-          tags:             (s.tags ?? []).join(", "),
-          is_published:     s.is_published     ?? false,
-          is_featured:      s.is_featured      ?? false,
-          display_order:    s.display_order    ?? 0,
+          name:            s.name             ?? "",
+          slug:            s.slug             ?? "",
+          tagline:         s.tagline          ?? "",
+          description:     s.description      ?? "",
+          website:         s.website          ?? "",
+          industry:        s.industry         ?? "",
+          stage:           s.stage            ?? "IDEA",
+          status:          s.status           ?? "INCUBATING",
+          foundedYear:     s.founded_year?.toString()  ?? "",
+          teamSize:        s.team_size?.toString()     ?? "",
+          fundingRaised:   s.funding_raised            ?? "",
+          logo:            s.logo             ?? "",
+          coverImage:      s.cover_image      ?? "",
+          founderName:     s.founder_name     ?? "",
+          founderEmail:    s.founder_email    ?? "",
+          founderLinkedin: s.founder_linkedin ?? "",
+          linkedinUrl:     s.linkedin_url     ?? "",
+          facebookUrl:     s.facebook_url     ?? "",
+          tags:            (s.tags ?? []).join(", "),
+          isPublished:     s.is_published     ?? false,
+          isFeatured:      s.is_featured      ?? false,
+          displayOrder:    s.display_order    ?? 0,
         })
         setLoading(false)
       })
       .catch(() => setLoading(false))
   }, [id, isNew])
 
-  function set(name, value) {
+  function set(key, value) {
     setFields(prev => {
-      const next = { ...prev, [name]: value }
-      if (name === "name" && autoSlug) next.slug = slugify(value)
+      const next = { ...prev, [key]: value }
+      if (key === "name" && autoSlug) next.slug = slugify(value)
       return next
     })
   }
@@ -109,11 +108,28 @@ export default function StartupEditPage() {
   async function handleSave() {
     setSaving(true); setError(""); setSuccess(false)
     const body = {
-      ...fields,
-      tags: fields.tags.split(",").map(t => t.trim()).filter(Boolean),
-      founded_year:  fields.founded_year  ? Number(fields.founded_year)  : null,
-      team_size:     fields.team_size     ? Number(fields.team_size)     : null,
-      display_order: Number(fields.display_order) || 0,
+      name:            fields.name,
+      slug:            fields.slug,
+      tagline:         fields.tagline,
+      description:     fields.description,
+      website:         fields.website,
+      industry:        fields.industry,
+      stage:           fields.stage,
+      status:          fields.status,
+      foundedYear:     fields.foundedYear  ? Number(fields.foundedYear)  : null,
+      teamSize:        fields.teamSize     ? Number(fields.teamSize)     : null,
+      fundingRaised:   fields.fundingRaised,
+      logo:            fields.logo,
+      coverImage:      fields.coverImage,
+      founderName:     fields.founderName,
+      founderEmail:    fields.founderEmail,
+      founderLinkedin: fields.founderLinkedin,
+      linkedinUrl:     fields.linkedinUrl,
+      facebookUrl:     fields.facebookUrl,
+      tags:            fields.tags.split(",").map(t => t.trim()).filter(Boolean),
+      isPublished:     fields.isPublished,
+      isFeatured:      fields.isFeatured,
+      displayOrder:    Number(fields.displayOrder) || 0,
     }
     const url    = isNew ? "/api/admin/startups"      : `/api/admin/startups/${id}`
     const method = isNew ? "POST"                      : "PATCH"
@@ -142,7 +158,7 @@ export default function StartupEditPage() {
           title={isNew ? "Thêm startup mới" : "Chỉnh sửa startup"}
           description={fields.slug ? `/${fields.slug}` : ""}
           backHref="/admin/startups"
-          actions={!isNew && fields.is_published && fields.slug ? (
+          actions={!isNew && fields.isPublished && fields.slug ? (
             <Link href={`/startups/${fields.slug}`} target="_blank"
               className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">
               <ExternalLink size={14} /> Xem trang
@@ -151,7 +167,6 @@ export default function StartupEditPage() {
         />
 
         <div className="space-y-4">
-          {/* Thông tin cơ bản */}
           <FormSection title="Thông tin startup">
             <div className="grid grid-cols-2 gap-4">
               <Field label="Tên startup" required>
@@ -192,15 +207,15 @@ export default function StartupEditPage() {
                 </select>
               </Field>
               <Field label="Năm thành lập">
-                <input name="founded_year" type="number" min="2000" max="2030" value={fields.founded_year} onChange={handleChange} className={inputCls} placeholder="2023" />
+                <input name="foundedYear" type="number" min="2000" max="2030" value={fields.foundedYear} onChange={handleChange} className={inputCls} placeholder="2023" />
               </Field>
               <Field label="Quy mô team">
-                <input name="team_size" type="number" min="1" value={fields.team_size} onChange={handleChange} className={inputCls} placeholder="5" />
+                <input name="teamSize" type="number" min="1" value={fields.teamSize} onChange={handleChange} className={inputCls} placeholder="5" />
               </Field>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <Field label="Vốn đã huy động" hint="VD: $200K, 2 tỷ VND">
-                <input name="funding_raised" value={fields.funding_raised} onChange={handleChange} className={inputCls} placeholder="$200K" />
+                <input name="fundingRaised" value={fields.fundingRaised} onChange={handleChange} className={inputCls} placeholder="$200K" />
               </Field>
               <Field label="Tags" hint="Phân cách bằng dấu phẩy">
                 <input name="tags" value={fields.tags} onChange={handleChange} className={inputCls} placeholder="AI, fintech, B2B" />
@@ -208,13 +223,13 @@ export default function StartupEditPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <Field label="Thứ tự hiển thị">
-                <input name="display_order" type="number" min="0" value={fields.display_order} onChange={handleChange} className={inputCls} />
+                <input name="displayOrder" type="number" min="0" value={fields.displayOrder} onChange={handleChange} className={inputCls} />
               </Field>
             </div>
             <div className="flex items-center gap-5 pt-1">
               {[
-                { name: "is_published", label: "Đã publish" },
-                { name: "is_featured",  label: "Nổi bật (trang chủ)" },
+                { name: "isPublished", label: "Đã publish" },
+                { name: "isFeatured",  label: "Nổi bật (trang chủ)" },
               ].map(cb => (
                 <label key={cb.name} className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
                   <input type="checkbox" name={cb.name} checked={fields[cb.name]} onChange={handleChange}
@@ -225,7 +240,6 @@ export default function StartupEditPage() {
             </div>
           </FormSection>
 
-          {/* Media — 2 uploads side by side */}
           <FormSection title="Media" description="Logo và ảnh bìa của startup">
             <div className="grid grid-cols-2 gap-6">
               <div>
@@ -242,8 +256,8 @@ export default function StartupEditPage() {
               <div>
                 <p className="text-xs font-medium text-muted-foreground mb-2">Ảnh bìa <span className="font-normal">(16:9, 1200×675px)</span></p>
                 <ImageUpload
-                  value={fields.cover_image}
-                  onChange={url => set("cover_image", url)}
+                  value={fields.coverImage}
+                  onChange={url => set("coverImage", url)}
                   type="startup"
                   slug={fields.slug ? `${fields.slug}-cover` : ""}
                   aspect="landscape"
@@ -252,29 +266,27 @@ export default function StartupEditPage() {
             </div>
           </FormSection>
 
-          {/* Thông tin founder */}
           <FormSection title="Thông tin Founder" description="Không bắt buộc — hiển thị trên trang chi tiết startup">
             <div className="grid grid-cols-2 gap-4">
               <Field label="Họ tên founder">
-                <input name="founder_name" value={fields.founder_name} onChange={handleChange} className={inputCls} placeholder="Nguyễn Văn A" />
+                <input name="founderName" value={fields.founderName} onChange={handleChange} className={inputCls} placeholder="Nguyễn Văn A" />
               </Field>
               <Field label="Email founder">
-                <input name="founder_email" type="email" value={fields.founder_email} onChange={handleChange} className={inputCls} />
+                <input name="founderEmail" type="email" value={fields.founderEmail} onChange={handleChange} className={inputCls} />
               </Field>
               <Field label="LinkedIn founder">
-                <input name="founder_linkedin" value={fields.founder_linkedin} onChange={handleChange} className={inputCls} placeholder="https://linkedin.com/in/..." />
+                <input name="founderLinkedin" value={fields.founderLinkedin} onChange={handleChange} className={inputCls} placeholder="https://linkedin.com/in/..." />
               </Field>
             </div>
           </FormSection>
 
-          {/* Mạng xã hội startup */}
           <FormSection title="Mạng xã hội">
             <div className="grid grid-cols-2 gap-4">
               <Field label="LinkedIn">
-                <input name="linkedin_url" value={fields.linkedin_url} onChange={handleChange} className={inputCls} placeholder="https://linkedin.com/company/..." />
+                <input name="linkedinUrl" value={fields.linkedinUrl} onChange={handleChange} className={inputCls} placeholder="https://linkedin.com/company/..." />
               </Field>
               <Field label="Facebook">
-                <input name="facebook_url" value={fields.facebook_url} onChange={handleChange} className={inputCls} placeholder="https://facebook.com/..." />
+                <input name="facebookUrl" value={fields.facebookUrl} onChange={handleChange} className={inputCls} placeholder="https://facebook.com/..." />
               </Field>
             </div>
           </FormSection>

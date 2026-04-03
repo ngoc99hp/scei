@@ -1,33 +1,95 @@
 // src/app/api/admin/mentors/[id]/route.js
-import { NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth.config"
-import sql from "@/lib/db"
+import { NextResponse }              from "next/server"
+import sql                           from "@/lib/db"
+import { requireApiAdmin }           from "@/lib/auth"
+import { mentorSchema }              from "@/lib/validations"
+import { logger }                    from "@/lib/logger"
+import { deleteImage, extractPublicId } from "@/lib/cloudinary"
 
-async function requireAdmin() {
-  const s = await getServerSession(authOptions)
-  if (!s || s.user.role !== "ADMIN") return null
-  return s
-}
 export async function GET(req, { params }) {
-  if (!await requireAdmin()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const auth = await requireApiAdmin()
+  if (!auth.ok) return auth.res
+
   const { id } = await params
   const rows = await sql`SELECT * FROM mentors WHERE id = ${id} LIMIT 1`
   if (!rows[0]) return NextResponse.json({ error: "Không tìm thấy" }, { status: 404 })
   return NextResponse.json({ mentor: rows[0] })
 }
+
 export async function PATCH(req, { params }) {
-  if (!await requireAdmin()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const auth = await requireApiAdmin()
+  if (!auth.ok) return auth.res
+
   const { id } = await params
   let body
-  try { body = await req.json() } catch { return NextResponse.json({ error: "Body không hợp lệ" }, { status: 400 }) }
-  const { name, slug, title, organization, expertise, bio, short_bio, email, linkedin_url, facebook_url, website, years_exp, avatar, tags, status, is_published, is_featured, display_order } = body
-  await sql`UPDATE mentors SET name=${name||null}, slug=${slug||null}, title=${title||null}, organization=${organization||null}, expertise=${expertise||null}, bio=${bio||null}, short_bio=${short_bio||null}, email=${email||null}, linkedin_url=${linkedin_url||null}, facebook_url=${facebook_url||null}, website=${website||null}, years_exp=${years_exp?Number(years_exp):null}, avatar=${avatar||null}, tags=${JSON.stringify(tags??[])}, status=${status}::"MentorStatus", is_published=${is_published??false}, is_featured=${is_featured??false}, display_order=${display_order??0}, updated_at=now() WHERE id=${id}`
-  return NextResponse.json({ success: true })
+  try { body = await req.json() }
+  catch { return NextResponse.json({ error: "Body không hợp lệ" }, { status: 400 }) }
+
+  const parsed = mentorSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Dữ liệu không hợp lệ", details: parsed.error.flatten().fieldErrors },
+      { status: 422 }
+    )
+  }
+
+  const d = parsed.data
+
+  const current  = await sql`SELECT avatar FROM mentors WHERE id = ${id} LIMIT 1`
+  const oldAvatar = current[0]?.avatar ?? null
+
+  try {
+    await sql`
+      UPDATE mentors SET
+        name         = ${d.name},
+        slug         = ${d.slug},
+        title        = ${d.title        ?? null},
+        organization = ${d.organization ?? null},
+        expertise    = ${d.expertise    ?? null},
+        bio          = ${d.bio          ?? null},
+        short_bio    = ${d.shortBio     ?? null},
+        email        = ${d.email        ?? null},
+        linkedin_url = ${d.linkedinUrl  ?? null},
+        facebook_url = ${d.facebookUrl  ?? null},
+        website      = ${d.website      ?? null},
+        years_exp    = ${d.yearsExp     ?? null},
+        avatar       = ${d.avatar       ?? null},
+        tags         = ${d.tags},
+        status       = ${d.status}::"MentorStatus",
+        is_published = ${d.isPublished},
+        is_featured  = ${d.isFeatured},
+        display_order = ${d.displayOrder},
+        updated_at   = now()
+      WHERE id = ${id}
+    `
+
+    if (oldAvatar && oldAvatar !== d.avatar) {
+      const pid = extractPublicId(oldAvatar)
+      if (pid) deleteImage(pid).catch(() => {})
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    logger.error("PATCH /api/admin/mentors/[id] failed", err, { id })
+    return NextResponse.json({ error: "Lỗi server" }, { status: 500 })
+  }
 }
+
 export async function DELETE(req, { params }) {
-  if (!await requireAdmin()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const auth = await requireApiAdmin()
+  if (!auth.ok) return auth.res
+
   const { id } = await params
+
+  const current = await sql`SELECT avatar FROM mentors WHERE id = ${id} LIMIT 1`
+  const avatar  = current[0]?.avatar ?? null
+
   await sql`DELETE FROM mentors WHERE id = ${id}`
+
+  if (avatar) {
+    const pid = extractPublicId(avatar)
+    if (pid) deleteImage(pid).catch(() => {})
+  }
+
   return NextResponse.json({ success: true })
 }

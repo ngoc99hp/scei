@@ -48,7 +48,7 @@ export default function MentorsPage() {
   return (
     <div className="p-5 max-w-7xl mx-auto">
       <PageHeader title="Mentor" description={`${total} mentor`}
-        actions={<CreateButton href="/admin/mentors/new" label="Thêm mentor" />} />
+        actions={<CreateButton href="/admin/mentors/new/edit" label="Thêm mentor" />} />
       <FilterBar searchValue={search} onSearch={setSearch} placeholder="Tìm theo tên mentor..."
         filters={STATUS_FILTERS.map(f => ({ ...f, active: f.value === statusFilter, onClick: () => setStatusFilter(f.value) }))} />
 
@@ -62,7 +62,7 @@ export default function MentorsPage() {
             </div>
           ))}</div>
         ) : items.length === 0 ? (
-          <EmptyAdmin message="Chưa có mentor nào" action={<CreateButton href="/admin/mentors/new" />} />
+          <EmptyAdmin message="Chưa có mentor nào" action={<CreateButton href="/admin/mentors/new/edit" />} />
         ) : (
           <>
             <div className="hidden md:grid grid-cols-[1fr_160px_120px_80px] gap-4 px-4 py-2.5 bg-muted border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wide">

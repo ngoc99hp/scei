@@ -1,33 +1,94 @@
 // src/app/api/admin/programs/[id]/route.js
-import { NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth.config"
-import sql from "@/lib/db"
+import { NextResponse }              from "next/server"
+import sql                           from "@/lib/db"
+import { requireApiAdmin }           from "@/lib/auth"
+import { programSchema }             from "@/lib/validations"
+import { logger }                    from "@/lib/logger"
+import { deleteImage, extractPublicId } from "@/lib/cloudinary"
 
-async function requireAdmin() {
-  const s = await getServerSession(authOptions)
-  if (!s || s.user.role !== "ADMIN") return null
-  return s
-}
 export async function GET(req, { params }) {
-  if (!await requireAdmin()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const auth = await requireApiAdmin()
+  if (!auth.ok) return auth.res
+
   const { id } = await params
   const rows = await sql`SELECT * FROM programs WHERE id = ${id} LIMIT 1`
   if (!rows[0]) return NextResponse.json({ error: "Không tìm thấy" }, { status: 404 })
   return NextResponse.json({ program: rows[0] })
 }
+
 export async function PATCH(req, { params }) {
-  if (!await requireAdmin()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const auth = await requireApiAdmin()
+  if (!auth.ok) return auth.res
+
   const { id } = await params
   let body
-  try { body = await req.json() } catch { return NextResponse.json({ error: "Body không hợp lệ" }, { status: 400 }) }
-  const { name, slug, type, status, short_desc, description, content, benefits, requirements, cover_image, start_date, end_date, apply_deadline, max_applicants, is_published, is_featured, display_order } = body
-  await sql`UPDATE programs SET name=${name||null}, slug=${slug||null}, type=${type}::"ProgramType", status=${status}::"ProgramStatus", short_desc=${short_desc||null}, description=${description||null}, content=${content||null}, benefits=${benefits||null}, requirements=${requirements||null}, cover_image=${cover_image||null}, start_date=${start_date||null}, end_date=${end_date||null}, apply_deadline=${apply_deadline||null}, max_applicants=${max_applicants?Number(max_applicants):null}, is_published=${is_published??false}, is_featured=${is_featured??false}, display_order=${display_order??0}, updated_at=now() WHERE id=${id}`
-  return NextResponse.json({ success: true })
+  try { body = await req.json() }
+  catch { return NextResponse.json({ error: "Body không hợp lệ" }, { status: 400 }) }
+
+  const parsed = programSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Dữ liệu không hợp lệ", details: parsed.error.flatten().fieldErrors },
+      { status: 422 }
+    )
+  }
+
+  const d = parsed.data
+
+  const current = await sql`SELECT cover_image FROM programs WHERE id = ${id} LIMIT 1`
+  const oldImage = current[0]?.cover_image ?? null
+
+  try {
+    await sql`
+      UPDATE programs SET
+        name          = ${d.name},
+        slug          = ${d.slug},
+        type          = ${d.type}::"ProgramType",
+        status        = ${d.status}::"ProgramStatus",
+        short_desc    = ${d.shortDesc     ?? null},
+        description   = ${d.description  ?? null},
+        content       = ${d.content      ?? null},
+        benefits      = ${d.benefits     ?? null},
+        requirements  = ${d.requirements ?? null},
+        cover_image   = ${d.coverImage    ?? null},
+        start_date    = ${d.startDate     ?? null},
+        end_date      = ${d.endDate       ?? null},
+        apply_deadline = ${d.applyDeadline ?? null},
+        max_applicants = ${d.maxApplicants ?? null},
+        is_published  = ${d.isPublished},
+        is_featured   = ${d.isFeatured},
+        display_order = ${d.displayOrder},
+        updated_at    = now()
+      WHERE id = ${id}
+    `
+
+    if (oldImage && oldImage !== d.coverImage) {
+      const pid = extractPublicId(oldImage)
+      if (pid) deleteImage(pid).catch(() => {})
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    logger.error("PATCH /api/admin/programs/[id] failed", err, { id })
+    return NextResponse.json({ error: "Lỗi server" }, { status: 500 })
+  }
 }
+
 export async function DELETE(req, { params }) {
-  if (!await requireAdmin()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const auth = await requireApiAdmin()
+  if (!auth.ok) return auth.res
+
   const { id } = await params
+
+  const current = await sql`SELECT cover_image FROM programs WHERE id = ${id} LIMIT 1`
+  const coverImage = current[0]?.cover_image ?? null
+
   await sql`DELETE FROM programs WHERE id = ${id}`
+
+  if (coverImage) {
+    const pid = extractPublicId(coverImage)
+    if (pid) deleteImage(pid).catch(() => {})
+  }
+
   return NextResponse.json({ success: true })
 }

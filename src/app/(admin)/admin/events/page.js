@@ -69,7 +69,7 @@ export default function EventsPage() {
       <PageHeader
         title="Sự kiện"
         description={`${total} sự kiện`}
-        actions={<CreateButton href="/admin/events/new" label="Tạo sự kiện" />}
+        actions={<CreateButton href="/admin/events/new/edit" label="Tạo sự kiện" />}
       />
 
       <FilterBar
@@ -94,7 +94,7 @@ export default function EventsPage() {
             ))}
           </div>
         ) : events.length === 0 ? (
-          <EmptyAdmin message="Chưa có sự kiện nào" action={<CreateButton href="/admin/events/new" label="Tạo sự kiện đầu tiên" />} />
+          <EmptyAdmin message="Chưa có sự kiện nào" action={<CreateButton href="/admin/events/new/edit" label="Tạo sự kiện đầu tiên" />} />
         ) : (
           <>
             <div className="hidden md:grid grid-cols-[1fr_100px_110px_110px_100px_80px] gap-4 px-4 py-2.5 bg-muted border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wide">
