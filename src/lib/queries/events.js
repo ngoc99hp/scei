@@ -5,13 +5,6 @@ import { DEFAULT_PAGE_SIZE } from "@/lib/constants"
 
 /**
  * Lấy danh sách sự kiện đã publish với pagination
- * @param {{
- *   featured?: boolean,
- *   limit?: number,
- *   upcomingOnly?: boolean,
- *   page?: number,
- *   pageSize?: number
- * }} opts
  */
 export async function getEvents({
   featured,
@@ -41,7 +34,36 @@ export async function getEvents({
     `
   }
 
+<<<<<<< HEAD
   // ── Paginated or Limited list with filters ───────────────────────────────
+=======
+  // ── limit + featured filter (dùng cho section widget) ────────────────────
+  if (limit !== undefined) {
+    if (featured !== undefined) {
+      return sql`
+        SELECT id, slug, title, type, status, short_desc, cover_image,
+               start_date, end_date, is_online, location,
+               max_attendees, registered_count, tags, is_featured
+        FROM events
+        WHERE is_published = true
+          AND is_featured = ${featured}
+        ORDER BY start_date ASC
+        LIMIT ${limit}
+      `
+    }
+    return sql`
+      SELECT id, slug, title, type, status, short_desc, cover_image,
+             start_date, end_date, is_online, location,
+             max_attendees, registered_count, tags, is_featured
+      FROM events
+      WHERE is_published = true
+      ORDER BY start_date ASC
+      LIMIT ${limit}
+    `
+  }
+
+  // ── Paginated full list (dùng cho /events page) ───────────────────────────
+>>>>>>> 5640f9a64a9b0b3d9c9b1d2e327f30af826fe6f6
   const offset = ((page ?? 1) - 1) * pageSize
 
   return sql`
@@ -77,7 +99,6 @@ export async function getEventCount({ type, q } = {}) {
 
 /**
  * Lấy chi tiết 1 sự kiện theo slug
- * @param {string} slug
  */
 export async function getEventBySlug(slug) {
   const rows = await sql`
@@ -90,8 +111,108 @@ export async function getEventBySlug(slug) {
 }
 
 /**
- * Tăng registered_count sau khi có đăng ký mới
+ * Đăng ký tham dự sự kiện – ATOMIC transaction với SELECT FOR UPDATE.
+ *
+ * Thay thế pattern cũ (INSERT riêng + incrementEventRegistration riêng)
+ * để tránh race condition gây overbooking khi concurrent requests.
+ *
+ * Trả về object { success, message, error, status } thay vì throw,
+ * để route handler dễ map sang HTTP response.
+ *
  * @param {string} eventId
+ * @param {{ name: string, email: string, phone?: string, organization?: string, note?: string }} data
+ * @returns {Promise<{ success: boolean, message?: string, error?: string, httpStatus: number }>}
+ */
+export async function registerForEvent(eventId, { name, email, phone, organization, note }) {
+  // Neon serverless hỗ trợ interactive transactions qua sql.begin()
+  // Docs: https://neon.tech/docs/serverless/serverless-driver#transaction
+  return await sql.begin(async (tx) => {
+
+    // 1. Lock row để tránh concurrent overbooking
+    const events = await tx`
+      SELECT id, title, status, max_attendees, registered_count, register_deadline
+      FROM events
+      WHERE id = ${eventId}
+        AND is_published = true
+      LIMIT 1
+      FOR UPDATE
+    `
+
+    if (events.length === 0) {
+      return { success: false, error: "Sự kiện không tồn tại.", httpStatus: 404 }
+    }
+
+    const event = events[0]
+
+    // 2. FIX: Chỉ cho phép đăng ký khi status = OPEN
+    //    (Trước đây sai: cho phép cả DRAFT)
+    if (event.status !== "OPEN") {
+      return {
+        success: false,
+        error: "Sự kiện hiện không nhận đăng ký.",
+        httpStatus: 400,
+      }
+    }
+
+    // 3. Kiểm tra deadline
+    if (event.register_deadline && new Date(event.register_deadline) < new Date()) {
+      return {
+        success: false,
+        error: "Đã hết hạn đăng ký sự kiện này.",
+        httpStatus: 400,
+      }
+    }
+
+    // 4. Kiểm tra còn chỗ (đọc từ locked row – không bị stale)
+    if (event.max_attendees && event.registered_count >= event.max_attendees) {
+      return {
+        success: false,
+        error: "Sự kiện đã đủ số lượng người tham dự.",
+        httpStatus: 400,
+      }
+    }
+
+    // 5. Kiểm tra duplicate email trong cùng transaction
+    const existing = await tx`
+      SELECT id FROM event_registrations
+      WHERE event_id = ${eventId}
+        AND email = ${email}
+      LIMIT 1
+    `
+    if (existing.length > 0) {
+      return {
+        success: false,
+        error: "Email này đã đăng ký sự kiện trước đó.",
+        httpStatus: 409,
+      }
+    }
+
+    // 6. Insert registration
+    await tx`
+      INSERT INTO event_registrations
+        (event_id, name, email, phone, organization, note, status)
+      VALUES
+        (${eventId}, ${name}, ${email}, ${phone ?? null}, ${organization ?? null}, ${note ?? null}, 'REGISTERED')
+    `
+
+    // 7. Tăng counter trong cùng transaction (atomic)
+    await tx`
+      UPDATE events
+      SET registered_count = registered_count + 1
+      WHERE id = ${eventId}
+    `
+
+    return {
+      success: true,
+      message: `Đăng ký thành công! Chúng tôi sẽ gửi thông tin chi tiết đến ${email}.`,
+      httpStatus: 201,
+    }
+  })
+}
+
+/**
+ * @deprecated Dùng registerForEvent() thay thế để đảm bảo atomicity.
+ * Giữ lại để không break code khác đang gọi trực tiếp (nếu có).
  */
 export async function incrementEventRegistration(eventId) {
   await sql`

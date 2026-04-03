@@ -1,23 +1,21 @@
 "use client"
 // src/app/(admin)/admin/resources/[id]/edit/page.js
-// Dùng chung cho tạo mới (id="new") và edit
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import Link from "next/link"
-import { ExternalLink, FileText, Link2 } from "lucide-react"
+import { FileText, Link2 } from "lucide-react"
 import {
-  PageHeader, FormSection, Field, inputCls, SaveBar, PublishBadge,
+  PageHeader, FormSection, Field, inputCls, SaveBar,
 } from "@/components/admin/admin-ui"
 import { ImageUpload } from "@/components/admin/image-upload"
 
 const TYPE_OPTIONS = [
-  { value: "DOCUMENT",    label: "Tài liệu (PDF, Word...)" },
-  { value: "VIDEO",       label: "Video" },
-  { value: "TEMPLATE",    label: "Template" },
-  { value: "GUIDE",       label: "Hướng dẫn" },
-  { value: "TOOL",        label: "Công cụ / Tool" },
-  { value: "OTHER",       label: "Khác" },
+  { value: "DOCUMENT", label: "Tài liệu (PDF, Word...)" },
+  { value: "VIDEO",    label: "Video" },
+  { value: "TEMPLATE", label: "Template" },
+  { value: "GUIDE",    label: "Hướng dẫn" },
+  { value: "TOOL",     label: "Công cụ / Tool" },
+  { value: "OTHER",    label: "Khác" },
 ]
 
 const CATEGORY_OPTIONS = [
@@ -35,10 +33,10 @@ function slugify(s) {
 const INIT = {
   title: "", slug: "", description: "",
   type: "DOCUMENT",
-  cover_image: "",
-  file_url: "", external_url: "",
+  coverImage: "",
+  fileUrl: "", externalUrl: "",
   category: "", tags: "",
-  is_published: false, is_featured: false,
+  isPublished: false, isFeatured: false,
 }
 
 export default function ResourceEditPage() {
@@ -46,14 +44,13 @@ export default function ResourceEditPage() {
   const router  = useRouter()
   const isNew   = id === "new"
 
-  const [loading,   setLoading]  = useState(!isNew)
-  const [saving,    setSaving]   = useState(false)
-  const [error,     setError]    = useState("")
-  const [success,   setSuccess]  = useState(false)
-  const [fields,    setFields]   = useState(INIT)
-  const [autoSlug,  setAutoSlug] = useState(isNew)
-  // "file" | "url" — cách thêm tài nguyên
-  const [linkMode,  setLinkMode] = useState("url")
+  const [loading,  setLoading]  = useState(!isNew)
+  const [saving,   setSaving]   = useState(false)
+  const [error,    setError]    = useState("")
+  const [success,  setSuccess]  = useState(false)
+  const [fields,   setFields]   = useState(INIT)
+  const [autoSlug, setAutoSlug] = useState(isNew)
+  const [linkMode, setLinkMode] = useState("url") // "file" | "url"
 
   useEffect(() => {
     if (isNew) return
@@ -62,19 +59,18 @@ export default function ResourceEditPage() {
       .then(({ resource: r }) => {
         if (r) {
           setFields({
-            title:        r.title        ?? "",
-            slug:         r.slug         ?? "",
-            description:  r.description  ?? "",
-            type:         r.type         ?? "DOCUMENT",
-            cover_image:  r.cover_image  ?? "",
-            file_url:     r.file_url     ?? "",
-            external_url: r.external_url ?? "",
-            category:     r.category     ?? "",
-            tags:         (r.tags ?? []).join(", "),
-            is_published: r.is_published ?? false,
-            is_featured:  r.is_featured  ?? false,
+            title:       r.title        ?? "",
+            slug:        r.slug         ?? "",
+            description: r.description  ?? "",
+            type:        r.type         ?? "DOCUMENT",
+            coverImage:  r.cover_image  ?? "",
+            fileUrl:     r.file_url     ?? "",
+            externalUrl: r.external_url ?? "",
+            category:    r.category     ?? "",
+            tags:        (r.tags ?? []).join(", "),
+            isPublished: r.is_published ?? false,
+            isFeatured:  r.is_featured  ?? false,
           })
-          // Xác định mode từ data hiện có
           setLinkMode(r.file_url ? "file" : "url")
         }
         setLoading(false)
@@ -82,10 +78,10 @@ export default function ResourceEditPage() {
       .catch(() => setLoading(false))
   }, [id, isNew])
 
-  function set(name, value) {
+  function set(key, value) {
     setFields(prev => {
-      const next = { ...prev, [name]: value }
-      if (name === "title" && autoSlug) next.slug = slugify(value)
+      const next = { ...prev, [key]: value }
+      if (key === "title" && autoSlug) next.slug = slugify(value)
       return next
     })
   }
@@ -96,12 +92,18 @@ export default function ResourceEditPage() {
 
   async function handleSave() {
     setSaving(true); setError(""); setSuccess(false)
-    // Đảm bảo chỉ gửi 1 trong 2: file_url hoặc external_url
     const body = {
-      ...fields,
-      tags: fields.tags.split(",").map(t => t.trim()).filter(Boolean),
-      file_url:     linkMode === "file" ? fields.file_url     : "",
-      external_url: linkMode === "url"  ? fields.external_url : "",
+      title:       fields.title,
+      slug:        fields.slug,
+      description: fields.description,
+      type:        fields.type,
+      coverImage:  fields.coverImage,
+      fileUrl:     linkMode === "file" ? fields.fileUrl     : "",
+      externalUrl: linkMode === "url"  ? fields.externalUrl : "",
+      category:    fields.category,
+      tags:        fields.tags.split(",").map(t => t.trim()).filter(Boolean),
+      isPublished: fields.isPublished,
+      isFeatured:  fields.isFeatured,
     }
     const url    = isNew ? "/api/admin/resources"      : `/api/admin/resources/${id}`
     const method = isNew ? "POST"                       : "PATCH"
@@ -133,7 +135,6 @@ export default function ResourceEditPage() {
         />
 
         <div className="space-y-4">
-          {/* Thông tin cơ bản */}
           <FormSection title="Thông tin cơ bản">
             <Field label="Tiêu đề" required>
               <input name="title" value={fields.title} onChange={handleChange} className={inputCls} placeholder="Tên tài nguyên..." />
@@ -166,8 +167,8 @@ export default function ResourceEditPage() {
             </Field>
             <div className="flex items-center gap-5 pt-1">
               {[
-                { name: "is_published", label: "Đã publish" },
-                { name: "is_featured",  label: "Nổi bật" },
+                { name: "isPublished", label: "Đã publish" },
+                { name: "isFeatured",  label: "Nổi bật" },
               ].map(cb => (
                 <label key={cb.name} className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
                   <input type="checkbox" name={cb.name} checked={fields[cb.name]} onChange={handleChange}
@@ -178,9 +179,7 @@ export default function ResourceEditPage() {
             </div>
           </FormSection>
 
-          {/* Link / File */}
           <FormSection title="Đường dẫn tài nguyên" description="Chọn cách cung cấp tài nguyên">
-            {/* Toggle */}
             <div className="flex rounded-lg border border-border overflow-hidden w-fit">
               <button type="button"
                 onClick={() => setLinkMode("url")}
@@ -196,12 +195,12 @@ export default function ResourceEditPage() {
 
             {linkMode === "url" ? (
               <Field label="External URL" hint="Link Google Drive, YouTube, website ngoài..." required>
-                <input name="external_url" value={fields.external_url} onChange={handleChange}
+                <input name="externalUrl" value={fields.externalUrl} onChange={handleChange}
                   className={inputCls} placeholder="https://drive.google.com/file/..." />
               </Field>
             ) : (
               <Field label="File URL" hint="URL trực tiếp đến file (PDF, DOCX...)" required>
-                <input name="file_url" value={fields.file_url} onChange={handleChange}
+                <input name="fileUrl" value={fields.fileUrl} onChange={handleChange}
                   className={inputCls} placeholder="https://res.cloudinary.com/scei/..." />
                 <p className="text-xs text-muted-foreground mt-1">
                   💡 Upload file qua Cloudinary Media Library rồi copy URL vào đây.
@@ -210,11 +209,10 @@ export default function ResourceEditPage() {
             )}
           </FormSection>
 
-          {/* Ảnh thumbnail */}
           <FormSection title="Ảnh thumbnail" description="Ảnh hiển thị trong danh sách tài nguyên — khuyến nghị 800×600px">
             <ImageUpload
-              value={fields.cover_image}
-              onChange={url => set("cover_image", url)}
+              value={fields.coverImage}
+              onChange={url => set("coverImage", url)}
               type="resource"
               slug={fields.slug}
               aspect="landscape"

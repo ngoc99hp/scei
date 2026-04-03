@@ -50,7 +50,7 @@ export default function StartupsPage() {
   return (
     <div className="p-5 max-w-7xl mx-auto">
       <PageHeader title="Startup" description={`${total} startup`}
-        actions={<CreateButton href="/admin/startups/new" label="Thêm startup" />} />
+        actions={<CreateButton href="/admin/startups/new/edit" label="Thêm startup" />} />
       <FilterBar searchValue={search} onSearch={setSearch} placeholder="Tìm theo tên startup..."
         filters={STATUS_FILTERS.map(f => ({ ...f, active: f.value === statusFilter, onClick: () => setStatusFilter(f.value) }))} />
 
@@ -58,7 +58,7 @@ export default function StartupsPage() {
         {loading ? (
           <div className="divide-y">{Array.from({length:6}).map((_,i) => <div key={i} className="px-4 py-3 flex gap-4 animate-pulse"><div className="w-8 h-8 rounded bg-muted" /><div className="h-4 bg-muted rounded w-1/3 ml-2" /><div className="h-4 bg-muted rounded w-20 ml-auto" /></div>)}</div>
         ) : items.length === 0 ? (
-          <EmptyAdmin message="Chưa có startup nào" action={<CreateButton href="/admin/startups/new" />} />
+          <EmptyAdmin message="Chưa có startup nào" action={<CreateButton href="/admin/startups/new/edit" />} />
         ) : (
           <>
             <div className="hidden md:grid grid-cols-[1fr_120px_120px_80px] gap-4 px-4 py-2.5 bg-muted border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wide">

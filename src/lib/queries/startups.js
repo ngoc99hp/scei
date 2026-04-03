@@ -1,7 +1,28 @@
 // src/lib/queries/startups.js
 
-import sql from "@/lib/db"
+import sql                from "@/lib/db"
 import { DEFAULT_PAGE_SIZE } from "@/lib/constants"
+import { logger }         from "@/lib/logger"
+
+// ── Redis cache helper ────────────────────────────────────────
+// Lazy-init: chỉ tạo client khi thực sự cần, tránh lỗi khi build
+let _redis = null
+
+async function getRedis() {
+  if (_redis) return _redis
+  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+    return null
+  }
+  const { Redis } = await import("@upstash/redis")
+  _redis = new Redis({
+    url:   process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  })
+  return _redis
+}
+
+const STATS_CACHE_KEY = "startup_stats"
+const STATS_TTL_SEC   = 3600 // 1 giờ — số liệu aggregate không cần realtime
 
 /**
  * Lấy danh sách startup đã publish với pagination
@@ -83,9 +104,36 @@ export async function getStartupBySlug(slug) {
 }
 
 /**
- * Tính tổng vốn và nhân sự (dùng cho stats)
+ * Tính tổng vốn và nhân sự (dùng cho stats section trang chủ + trang startups).
+ *
+ * Cache strategy: Redis với TTL 1 giờ.
+ * - Cache hit  → trả về ngay, không query DB
+ * - Cache miss → query DB, write-through vào Redis
+ * - Redis lỗi  → fallback query DB trực tiếp, không throw
+ *
+ * Invalidation: gọi invalidateStartupStatsCache() sau khi create/update/delete startup
+ * trong admin routes.
  */
 export async function getStartupStats() {
+  const redis = await getRedis()
+
+  // 1. Thử đọc từ cache
+  if (redis) {
+    try {
+      const cached = await redis.get(STATS_CACHE_KEY)
+      if (cached) {
+        logger.debug("getStartupStats: cache hit")
+        // Redis trả về object đã parse nếu dùng JSON, hoặc string nếu SET thuần
+        return typeof cached === "string" ? JSON.parse(cached) : cached
+      }
+    } catch (err) {
+      // Cache lỗi → tiếp tục query DB, không crash
+      logger.warn("getStartupStats: Redis read error, falling back to DB", err)
+    }
+  }
+
+  // 2. Query DB
+  logger.debug("getStartupStats: cache miss, querying DB")
   const rows = await sql`
     SELECT
       COUNT(*) as total,
@@ -95,9 +143,40 @@ export async function getStartupStats() {
     WHERE is_published = true
   `
   const r = rows[0]
-  return {
+  const stats = {
     total:        Number(r.total),
     totalFunding: Number(r.total_funding),
     totalTeam:    Number(r.total_team),
+  }
+
+  // 3. Write-through: lưu vào cache
+  if (redis) {
+    try {
+      await redis.set(STATS_CACHE_KEY, JSON.stringify(stats), { ex: STATS_TTL_SEC })
+      logger.debug("getStartupStats: cached", { ttl: STATS_TTL_SEC })
+    } catch (err) {
+      // Cache write lỗi không nghiêm trọng — vẫn trả dữ liệu đúng
+      logger.warn("getStartupStats: Redis write error", err)
+    }
+  }
+
+  return stats
+}
+
+/**
+ * Xóa cache startup stats — gọi sau khi tạo/sửa/xóa startup trong admin.
+ *
+ * Fire-and-forget: hàm này không throw, mọi lỗi đều được log.
+ * Admin routes có thể gọi mà không cần await nếu không muốn block response.
+ */
+export async function invalidateStartupStatsCache() {
+  const redis = await getRedis()
+  if (!redis) return
+
+  try {
+    await redis.del(STATS_CACHE_KEY)
+    logger.info("invalidateStartupStatsCache: cleared")
+  } catch (err) {
+    logger.warn("invalidateStartupStatsCache: Redis error", err)
   }
 }

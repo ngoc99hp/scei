@@ -9,8 +9,8 @@
 // và bỏ comment dòng role: user.role bên dưới.
 
 import CredentialsProvider from "next-auth/providers/credentials"
-import { neon } from "@neondatabase/serverless"
-import bcrypt from "bcryptjs"
+import bcrypt              from "bcryptjs"
+import sql                 from "@/lib/db"   // dùng singleton, không tạo neon() mới mỗi lần
 
 export const authOptions = {
   session: {
@@ -31,8 +31,6 @@ export const authOptions = {
           throw new Error("Vui lòng nhập email và mật khẩu")
         }
 
-        const sql = neon(process.env.DATABASE_URL)
-
         const rows = await sql`
           SELECT id, email, name, password_hash, avatar, is_active
           FROM users
@@ -47,10 +45,9 @@ export const authOptions = {
         const isValid = await bcrypt.compare(credentials.password, user.password_hash)
         if (!isValid)        throw new Error("Email hoặc mật khẩu không đúng")
 
-        // Fire-and-forget
-        neon(process.env.DATABASE_URL)`
-          UPDATE users SET last_login_at = now() WHERE id = ${user.id}
-        `.catch(() => {})
+        // Fire-and-forget — dùng cùng sql singleton, không tạo instance mới
+        sql`UPDATE users SET last_login_at = now() WHERE id = ${user.id}`
+          .catch(() => {})
 
         return {
           id:     user.id,

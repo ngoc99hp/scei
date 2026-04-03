@@ -1,6 +1,5 @@
 "use client"
 // src/app/(admin)/admin/articles/[id]/edit/page.js
-// Dùng chung cho tạo mới (id="new") và edit (id=uuid)
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
@@ -12,7 +11,6 @@ import {
 } from "@/components/admin/admin-ui"
 import { ImageUpload } from "@/components/admin/image-upload"
 
-// Lazy-load editor để tránh SSR
 const RichTextEditor = dynamic(
   () => import("@/components/admin/rich-text-editor"),
   { ssr: false, loading: () => <div className="h-64 rounded-xl bg-muted animate-pulse" /> }
@@ -29,9 +27,9 @@ const CATEGORY_OPTIONS = [
 ]
 
 const INIT = {
-  title: "", slug: "", excerpt: "", content: "", cover_image: "",
+  title: "", slug: "", excerpt: "", content: "", coverImage: "",
   status: "DRAFT", category: "", tags: "",
-  meta_title: "", meta_desc: "",
+  metaTitle: "", metaDesc: "",
 }
 
 function slugify(str) {
@@ -46,14 +44,13 @@ export default function ArticleEditPage() {
   const router   = useRouter()
   const isNew    = id === "new"
 
-  const [loading, setLoading]   = useState(!isNew)
-  const [saving,  setSaving]    = useState(false)
-  const [error,   setError]     = useState("")
-  const [success, setSuccess]   = useState(false)
-  const [fields,  setFields]    = useState(INIT)
+  const [loading,  setLoading]  = useState(!isNew)
+  const [saving,   setSaving]   = useState(false)
+  const [error,    setError]    = useState("")
+  const [success,  setSuccess]  = useState(false)
+  const [fields,   setFields]   = useState(INIT)
   const [autoSlug, setAutoSlug] = useState(isNew)
 
-  // Load bài viết nếu edit
   useEffect(() => {
     if (isNew) return
     fetch(`/api/admin/articles/${id}`)
@@ -62,16 +59,16 @@ export default function ArticleEditPage() {
         if (data.article) {
           const a = data.article
           setFields({
-            title:       a.title       ?? "",
-            slug:        a.slug        ?? "",
-            excerpt:     a.excerpt     ?? "",
-            content:     a.content     ?? "",
-            cover_image: a.cover_image ?? "",
-            status:      a.status      ?? "DRAFT",
-            category:    a.category    ?? "",
-            tags:        (a.tags ?? []).join(", "),
-            meta_title:  a.meta_title  ?? "",
-            meta_desc:   a.meta_desc   ?? "",
+            title:      a.title       ?? "",
+            slug:       a.slug        ?? "",
+            excerpt:    a.excerpt     ?? "",
+            content:    a.content     ?? "",
+            coverImage: a.cover_image ?? "",
+            status:     a.status      ?? "DRAFT",
+            category:   a.category    ?? "",
+            tags:       (a.tags ?? []).join(", "),
+            metaTitle:  a.meta_title  ?? "",
+            metaDesc:   a.meta_desc   ?? "",
           })
           setAutoSlug(false)
         }
@@ -80,56 +77,44 @@ export default function ArticleEditPage() {
       .catch(() => setLoading(false))
   }, [id, isNew])
 
-  function set(name, value) {
+  function set(key, value) {
     setFields(prev => {
-      const next = { ...prev, [name]: value }
-      // Auto-generate slug từ title khi tạo mới
-      if (name === "title" && autoSlug) {
-        next.slug = slugify(value)
-      }
+      const next = { ...prev, [key]: value }
+      if (key === "title" && autoSlug) next.slug = slugify(value)
       return next
     })
   }
-
   function handleChange(e) {
     const { name, value } = e.target
     set(name, value)
   }
 
   async function handleSave() {
-    setSaving(true)
-    setError("")
-    setSuccess(false)
-
+    setSaving(true); setError(""); setSuccess(false)
     const body = {
-      ...fields,
-      tags: fields.tags.split(",").map(t => t.trim()).filter(Boolean),
+      title:      fields.title,
+      slug:       fields.slug,
+      excerpt:    fields.excerpt,
+      content:    fields.content,
+      coverImage: fields.coverImage,
+      status:     fields.status,
+      category:   fields.category,
+      tags:       fields.tags.split(",").map(t => t.trim()).filter(Boolean),
+      metaTitle:  fields.metaTitle,
+      metaDesc:   fields.metaDesc,
     }
-
     const url    = isNew ? "/api/admin/articles"      : `/api/admin/articles/${id}`
     const method = isNew ? "POST"                      : "PATCH"
-
     try {
-      const res  = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      })
+      const res  = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
       const data = await res.json()
-      if (!res.ok) {
-        setError(data.error || "Lưu thất bại")
-      } else {
-        setSuccess(true)
-        setTimeout(() => setSuccess(false), 3000)
-        if (isNew && data.article?.id) {
-          router.replace(`/admin/articles/${data.article.id}/edit`)
-        }
+      if (!res.ok) setError(data.error || "Lưu thất bại")
+      else {
+        setSuccess(true); setTimeout(() => setSuccess(false), 3000)
+        if (isNew && data.article?.id) router.replace(`/admin/articles/${data.article.id}/edit`)
       }
-    } catch {
-      setError("Lỗi kết nối")
-    } finally {
-      setSaving(false)
-    }
+    } catch { setError("Lỗi kết nối") }
+    finally { setSaving(false) }
   }
 
   if (loading) return (
@@ -158,12 +143,10 @@ export default function ArticleEditPage() {
         />
 
         <div className="space-y-4">
-          {/* Thông tin cơ bản */}
           <FormSection title="Thông tin bài viết">
             <Field label="Tiêu đề" required>
               <input name="title" value={fields.title} onChange={handleChange} className={inputCls} placeholder="Tiêu đề bài viết..." />
             </Field>
-
             <div className="grid grid-cols-2 gap-4">
               <Field label="Slug (URL)" hint="Tự động tạo từ tiêu đề khi tạo mới">
                 <input
@@ -181,7 +164,6 @@ export default function ArticleEditPage() {
                 </select>
               </Field>
             </div>
-
             <div className="grid grid-cols-2 gap-4">
               <Field label="Trạng thái">
                 <select name="status" value={fields.status} onChange={handleChange} className={inputCls}>
@@ -194,16 +176,14 @@ export default function ArticleEditPage() {
             </div>
           </FormSection>
 
-          {/* Ảnh bìa */}
           <FormSection title="Ảnh bìa" description="Khuyến nghị 1200×630px">
             <ImageUpload
-              value={fields.cover_image}
-              onChange={(url) => set("cover_image", url)}
+              value={fields.coverImage}
+              onChange={(url) => set("coverImage", url)}
               folder="article"
             />
           </FormSection>
 
-          {/* Mô tả ngắn */}
           <FormSection title="Mô tả ngắn" description="Hiển thị trong card preview và meta description (tối đa 300 ký tự)">
             <textarea
               name="excerpt"
@@ -217,7 +197,6 @@ export default function ArticleEditPage() {
             <p className="text-xs text-muted-foreground text-right">{fields.excerpt.length}/300</p>
           </FormSection>
 
-          {/* Nội dung */}
           <FormSection title="Nội dung" description="Soạn thảo nội dung đầy đủ của bài viết">
             <RichTextEditor
               value={fields.content}
@@ -227,26 +206,20 @@ export default function ArticleEditPage() {
             />
           </FormSection>
 
-          {/* SEO */}
           <FormSection title="SEO" description="Tùy chỉnh hiển thị trên Google Search (để trống sẽ dùng tiêu đề & mô tả ngắn)">
             <Field label="Meta title">
-              <input name="meta_title" value={fields.meta_title} onChange={handleChange} className={inputCls} placeholder={fields.title} maxLength={70} />
-              <p className="text-xs text-muted-foreground mt-1">{fields.meta_title.length}/70 ký tự</p>
+              <input name="metaTitle" value={fields.metaTitle} onChange={handleChange} className={inputCls} placeholder={fields.title} maxLength={70} />
+              <p className="text-xs text-muted-foreground mt-1">{fields.metaTitle.length}/70 ký tự</p>
             </Field>
             <Field label="Meta description">
-              <textarea name="meta_desc" value={fields.meta_desc} onChange={handleChange} rows={2} maxLength={160} className={`${inputCls} resize-none`} placeholder={fields.excerpt || "Mô tả xuất hiện trên Google..."} />
-              <p className="text-xs text-muted-foreground mt-1">{fields.meta_desc.length}/160 ký tự</p>
+              <textarea name="metaDesc" value={fields.metaDesc} onChange={handleChange} rows={2} maxLength={160} className={`${inputCls} resize-none`} placeholder={fields.excerpt || "Mô tả xuất hiện trên Google..."} />
+              <p className="text-xs text-muted-foreground mt-1">{fields.metaDesc.length}/160 ký tự</p>
             </Field>
           </FormSection>
         </div>
       </div>
 
-      <SaveBar
-        saving={saving}
-        success={success}
-        error={error}
-        onSave={handleSave}
-      />
+      <SaveBar saving={saving} success={success} error={error} onSave={handleSave} />
     </div>
   )
 }

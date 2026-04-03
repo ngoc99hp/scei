@@ -65,7 +65,7 @@ export default function ArticlesPage() {
       <PageHeader
         title="Bài viết"
         description={`${total} bài viết`}
-        actions={<CreateButton href="/admin/articles/new" label="Viết bài mới" />}
+        actions={<CreateButton href="/admin/articles/new/edit" label="Viết bài mới" />}
       />
 
       <FilterBar
@@ -94,7 +94,7 @@ export default function ArticlesPage() {
         ) : articles.length === 0 ? (
           <EmptyAdmin
             message="Chưa có bài viết nào"
-            action={<CreateButton href="/admin/articles/new" label="Viết bài đầu tiên" />}
+            action={<CreateButton href="/admin/articles/new/edit" label="Viết bài đầu tiên" />}
           />
         ) : (
           <>

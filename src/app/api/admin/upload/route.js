@@ -1,18 +1,18 @@
 // src/app/api/admin/upload/route.js
 // API endpoint để Admin upload ảnh lên Cloudinary
-// Protected bởi middleware — chỉ admin đã đăng nhập mới dùng được
+// Protected bởi requireApiAdmin() — chỉ admin đã đăng nhập mới dùng được
 
-import { NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth.config"
-import { uploadImage } from "@/lib/cloudinary"
+import { NextResponse }    from "next/server"
+import { uploadImage }     from "@/lib/cloudinary"
+import { requireApiAdmin } from "@/lib/auth"
+import { logger }          from "@/lib/logger"
 
 export const dynamic = "force-dynamic"
 
 // Giới hạn kích thước file: 5MB
 const MAX_FILE_SIZE = 5 * 1024 * 1024
 
-// Các loại file cho phép
+// Các MIME type cho phép (header)
 const ALLOWED_TYPES = [
   "image/jpeg",
   "image/jpg",
@@ -20,6 +20,50 @@ const ALLOWED_TYPES = [
   "image/webp",
   "image/gif",
 ]
+
+/**
+ * Magic bytes cho từng định dạng ảnh.
+ * Validate THỰC SỰ từ binary content — không tin vào Content-Type header
+ * vì client có thể gửi file.type bất kỳ.
+ *
+ * JPEG : FF D8 FF
+ * PNG  : 89 50 4E 47  (‌\x89PNG)
+ * WebP : 52 49 46 46 ?? ?? ?? ?? 57 45 42 50  (RIFF????WEBP)
+ * GIF  : 47 49 46 38  (GIF8)
+ */
+const MAGIC_BYTES = [
+  {
+    mime:   "image/jpeg",
+    check:  (b) => b[0] === 0xFF && b[1] === 0xD8 && b[2] === 0xFF,
+  },
+  {
+    mime:   "image/png",
+    check:  (b) => b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4E && b[3] === 0x47,
+  },
+  {
+    mime:   "image/webp",
+    // RIFF (4 bytes) + size (4 bytes) + WEBP (4 bytes)
+    check:  (b) =>
+      b[0]  === 0x52 && b[1]  === 0x49 && b[2]  === 0x46 && b[3]  === 0x46 &&
+      b[8]  === 0x57 && b[9]  === 0x45 && b[10] === 0x42 && b[11] === 0x50,
+  },
+  {
+    mime:   "image/gif",
+    check:  (b) => b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x38,
+  },
+]
+
+/**
+ * Kiểm tra magic bytes của buffer, trả về MIME type thực hoặc null nếu không hợp lệ.
+ * @param {Uint8Array} bytes
+ * @returns {string|null}
+ */
+function detectMimeFromBytes(bytes) {
+  for (const { mime, check } of MAGIC_BYTES) {
+    if (check(bytes)) return mime
+  }
+  return null
+}
 
 // Map folder theo entity type
 const FOLDER_MAP = {
@@ -45,10 +89,8 @@ const SIZE_MAP = {
 
 export async function POST(request) {
   // 1. Kiểm tra auth
-  const session = await getServerSession(authOptions)
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+  const auth = await requireApiAdmin()
+  if (!auth.ok) return auth.res
 
   try {
     // 2. Parse multipart form data
@@ -57,7 +99,7 @@ export async function POST(request) {
     const type = formData.get("type") || "misc"  // entity type
     const slug = formData.get("slug") || ""       // để đặt tên file
 
-    // 3. Validate file
+    // 3. Validate file tồn tại
     if (!file || typeof file === "string") {
       return NextResponse.json(
         { error: "Không tìm thấy file" },
@@ -65,6 +107,7 @@ export async function POST(request) {
       )
     }
 
+    // 4. Validate MIME type từ header trước (quick check)
     if (!ALLOWED_TYPES.includes(file.type)) {
       return NextResponse.json(
         { error: `Chỉ chấp nhận: ${ALLOWED_TYPES.join(", ")}` },
@@ -72,6 +115,7 @@ export async function POST(request) {
       )
     }
 
+    // 5. Validate kích thước
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
         { error: "File quá lớn. Tối đa 5MB." },
@@ -79,19 +123,46 @@ export async function POST(request) {
       )
     }
 
-    // 4. Convert File → base64 để upload lên Cloudinary
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-    const base64 = `data:${file.type};base64,${buffer.toString("base64")}`
+    // 6. Đọc binary và validate magic bytes
+    //    Bước này quan trọng: ngay cả khi header bị fake, nội dung thực
+    //    của file phải khớp với định dạng ảnh hợp lệ.
+    const bytes    = await file.arrayBuffer()
+    const uint8    = new Uint8Array(bytes)
+    const realMime = detectMimeFromBytes(uint8)
 
-    // 5. Xác định folder và publicId
-    const folder = FOLDER_MAP[type] || FOLDER_MAP.misc
-    const sizeConfig = SIZE_MAP[type] || SIZE_MAP.misc
-    const publicId = slug
+    if (!realMime) {
+      logger.warn("Upload rejected: magic bytes mismatch", {
+        declaredType: file.type,
+        size:         file.size,
+        user:         auth.session.user.email,
+      })
+      return NextResponse.json(
+        { error: "File không hợp lệ — nội dung không khớp định dạng ảnh" },
+        { status: 400 }
+      )
+    }
+
+    // Optional: cảnh báo nếu header khác magic bytes (có thể là lỗi client)
+    if (realMime !== file.type && !(file.type === "image/jpg" && realMime === "image/jpeg")) {
+      logger.warn("Upload: MIME type mismatch between header and magic bytes", {
+        declaredType: file.type,
+        detectedType: realMime,
+        user:         auth.session.user.email,
+      })
+    }
+
+    // 7. Convert File → base64 để upload lên Cloudinary
+    const buffer = Buffer.from(bytes)
+    const base64 = `data:${realMime};base64,${buffer.toString("base64")}`
+
+    // 8. Xác định folder và publicId
+    const folder     = FOLDER_MAP[type] || FOLDER_MAP.misc
+    const sizeConfig = SIZE_MAP[type]   || SIZE_MAP.misc
+    const publicId   = slug
       ? `${slug}-${Date.now()}`
       : `upload-${Date.now()}`
 
-    // 6. Upload lên Cloudinary
+    // 9. Upload lên Cloudinary
     const result = await uploadImage(base64, {
       folder,
       publicId,
@@ -105,20 +176,19 @@ export async function POST(request) {
       )
     }
 
-    // 7. Trả về URL đã upload
+    // 10. Trả về URL đã upload
     return NextResponse.json({
-      ok: true,
-      url: result.url,
+      ok:       true,
+      url:      result.url,
       publicId: result.publicId,
-      width: result.width,
-      height: result.height,
+      width:    result.width,
+      height:   result.height,
     })
   } catch (error) {
-    console.error("[Upload API] Error:", error)
+    logger.error("[Upload API] Unhandled error", error, { user: auth?.session?.user?.email })
     return NextResponse.json(
       { error: "Lỗi server khi upload" },
       { status: 500 }
     )
   }
 }
-

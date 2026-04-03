@@ -58,7 +58,7 @@ export default function ProgramsPage() {
   return (
     <div className="p-5 max-w-7xl mx-auto">
       <PageHeader title="Chương trình" description={`${total} chương trình`}
-        actions={<CreateButton href="/admin/programs/new" label="Tạo chương trình" />} />
+        actions={<CreateButton href="/admin/programs/new/edit" label="Tạo chương trình" />} />
       <FilterBar searchValue={search} onSearch={setSearch} placeholder="Tìm theo tên chương trình..."
         filters={STATUS_FILTERS.map(f => ({ ...f, active: f.value === statusFilter, onClick: () => setStatusFilter(f.value) }))} />
 
@@ -70,7 +70,7 @@ export default function ProgramsPage() {
             </div>
           ))}</div>
         ) : items.length === 0 ? (
-          <EmptyAdmin message="Chưa có chương trình nào" action={<CreateButton href="/admin/programs/new" />} />
+          <EmptyAdmin message="Chưa có chương trình nào" action={<CreateButton href="/admin/programs/new/edit" />} />
         ) : (
           <>
             <div className="hidden md:grid grid-cols-[1fr_100px_110px_120px_80px] gap-4 px-4 py-2.5 bg-muted border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wide">

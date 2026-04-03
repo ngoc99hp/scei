@@ -1,6 +1,7 @@
 // src/lib/queries/articles.js
 
-import sql from "@/lib/db"
+import sql    from "@/lib/db"
+import { logger } from "@/lib/logger"
 
 /**
  * Lấy danh sách bài viết đã publish
@@ -35,11 +36,31 @@ export async function getArticleCount({ category } = {}) {
   return Number(rows[0]?.count ?? 0)
 }
 
+// ── Bot detection ─────────────────────────────────────────────
+//
+// Danh sách bot/crawler User-Agent patterns phổ biến.
+// Không cần exhaustive — chặn được Googlebot, các major crawlers là đủ.
+// Các UA không khớp vẫn có thể là bot, nhưng sẽ không làm skew số liệu nhiều.
+const BOT_UA_PATTERN = /bot|crawler|spider|crawling|facebookexternalhit|twitterbot|linkedinbot|whatsapp|slackbot|telegrambot|discordbot|applebot|bingbot|yandex|baidu|duckduck|semrush|ahrefs|moz|dataprovider|bytespider|gptbot|claudebot|anthropic/i
+
 /**
- * Lấy chi tiết 1 bài viết theo slug + tăng view_count
- * @param {string} slug
+ * Kiểm tra User-Agent có phải bot không.
+ * @param {string|null} ua
+ * @returns {boolean}
  */
-export async function getArticleBySlug(slug) {
+export function isBotUserAgent(ua) {
+  if (!ua || ua.trim() === "") return true   // không có UA → coi là bot
+  return BOT_UA_PATTERN.test(ua)
+}
+
+/**
+ * Lấy chi tiết 1 bài viết theo slug.
+ * Tăng view_count bất đồng bộ, với bot filter để tránh inflate số liệu.
+ *
+ * @param {string} slug
+ * @param {string|null} [userAgent] - request UA để filter bot
+ */
+export async function getArticleBySlug(slug, userAgent = null) {
   const rows = await sql`
     SELECT * FROM articles
     WHERE slug = ${slug} AND status = 'PUBLISHED'
@@ -48,11 +69,17 @@ export async function getArticleBySlug(slug) {
   const article = rows[0] ?? null
 
   // Tăng view count bất đồng bộ (không block render)
+  // Chỉ đếm nếu không phải bot
   if (article) {
-    sql`
-      UPDATE articles SET view_count = view_count + 1
-      WHERE id = ${article.id}
-    `.catch(() => {})
+    const isBot = isBotUserAgent(userAgent)
+    if (!isBot) {
+      sql`
+        UPDATE articles SET view_count = view_count + 1
+        WHERE id = ${article.id}
+      `.catch((err) => logger.warn("view_count increment failed", err, { slug }))
+    } else {
+      logger.debug("view_count skipped: bot UA", { slug, ua: userAgent?.slice(0, 80) })
+    }
   }
 
   return article

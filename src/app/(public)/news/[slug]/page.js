@@ -1,45 +1,42 @@
 // src/app/(public)/news/[slug]/page.js
-//
-// ✅ FIX Critical #3 — Sanitize article.content trước dangerouslySetInnerHTML
-//    TRƯỚC: <div dangerouslySetInnerHTML={{ __html: article.content }} />
-//           → XSS risk: nếu DB bị inject script, user bị tấn công
-//    SAU:   <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.content) }} />
-//           → Chỉ render HTML tags an toàn, block script/event handlers/javascript: URLs
 
-import Link from "next/link"
-import Image from "next/image"
-import { notFound } from "next/navigation"
+import Link            from "next/link"
+import Image           from "next/image"
+import { headers }     from "next/headers"
+import { notFound }    from "next/navigation"
 import { getArticleBySlug, getRelatedArticles } from "@/lib/queries/articles"
-import { sanitizeHtml } from "@/lib/sanitize"   // ✅ FIX — import sanitizer
-import { Container } from "@/components/ui/container"
-import { Section } from "@/components/ui/section"
-import { Card } from "@/components/ui/card"
+import { sanitizeHtml }  from "@/lib/sanitize"
+import { Container }   from "@/components/ui/container"
+import { Section }     from "@/components/ui/section"
+import { Card }        from "@/components/ui/card"
 import { ArrowLeft, CalendarDays, Eye, Tag, ArrowRight } from "lucide-react"
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/seo/json-ld"
-
-const BASE = process.env.NEXT_PUBLIC_SITE_URL
 
 import { generateArticleStaticParams } from "@/lib/generate-static-params"
 export const generateStaticParams = generateArticleStaticParams
 
 export const revalidate = 1800
 
+const BASE = process.env.NEXT_PUBLIC_SITE_URL
+
 export async function generateMetadata({ params }) {
   const { slug } = await params
-  const article = await getArticleBySlug(slug)
+  const article = await getArticleBySlug(slug)  // metadata không cần UA
   if (!article) return {}
   return {
-    title: article.meta_title || `${article.title} — SCEI`,
-    description: article.meta_desc || article.excerpt,
-    alternates: { canonical: `${BASE}/news/${slug}` },
+    title:       article.meta_title || `${article.title} — SCEI`,
+    description: article.meta_desc  || article.excerpt,
+    alternates:  { canonical: `${BASE}/news/${slug}` },
     openGraph: {
-      title: article.title,
+      title:       article.title,
       description: article.excerpt,
-      images: article.cover_image ? [{ url: article.cover_image, width: 1200, height: 630 }] : [],
+      images: article.cover_image
+        ? [{ url: article.cover_image, width: 1200, height: 630 }]
+        : [],
     },
     twitter: {
-      card: "summary_large_image",
-      title: article.title,
+      card:        "summary_large_image",
+      title:       article.title,
       description: article.meta_desc || article.excerpt,
       images: article.cover_image ? [article.cover_image] : [],
     },
@@ -51,13 +48,19 @@ const fmtDate = (d) =>
 
 export default async function ArticleDetailPage({ params }) {
   const { slug } = await params
-  const article = await getArticleBySlug(slug)
+
+  // Lấy User-Agent để bot filter trong getArticleBySlug
+  // headers() chỉ khả dụng trong dynamic render — không ảnh hưởng SSG vì
+  // generateStaticParams đã prerender, UA chỉ được đọc khi revalidate/dynamic
+  const headersList = await headers()
+  const userAgent   = headersList.get("user-agent")
+
+  const article = await getArticleBySlug(slug, userAgent)
   if (!article) notFound()
 
   const related = await getRelatedArticles(article.id, article.category, 3)
 
-  // ✅ FIX — Sanitize content server-side, một lần duy nhất khi render
-  // sanitizeHtml() chạy trong Server Component → không tốn bundle client
+  // Sanitize content server-side
   const safeContent = sanitizeHtml(article.content)
 
   return (
@@ -113,7 +116,7 @@ export default async function ArticleDetailPage({ params }) {
                 <hr className="border-gray-200" />
               </header>
 
-              {/* Body — ✅ FIX: dùng safeContent đã sanitize thay vì article.content raw */}
+              {/* Body */}
               <div className="prose prose-gray prose-lg max-w-none
                 prose-headings:font-bold prose-headings:text-gray-900
                 prose-p:text-gray-600 prose-p:leading-relaxed
@@ -185,7 +188,8 @@ export default async function ArticleDetailPage({ params }) {
           </div>
         </Container>
       </Section>
-      {/* ✅ SEO — JSON-LD */}
+
+      {/* SEO JSON-LD */}
       <ArticleJsonLd
         title={article.title}
         description={article.excerpt}
