@@ -549,7 +549,7 @@ export default async function HomePage() {
                         />
                       </div>
                     ) : (
-                      <div className="w-14 h-14 mb-3 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-200 flex items-center justify-center">
+                      <div className="w-14 h-14 mb-3 rounded-xl bg-linear-to-br from-blue-100 to-indigo-200 flex items-center justify-center">
                         <span className="text-xl font-bold text-blue-600">
                           {s.name[0]}
                         </span>
