@@ -19,7 +19,7 @@ export function PublicHeader() {
         <PublicNav />
 
         {/* Right side actions */}
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="hidden md:flex items-center gap-3 shrink-0">
           {/* <ThemeToggle /> */}
         </div>
       </nav>

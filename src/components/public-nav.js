@@ -58,24 +58,32 @@ export function PublicNav() {
 
       {/* Mobile Menu Overlay */}
       {isOpen && (
-        <div className="fixed inset-0 top-16 z-50 bg-background md:hidden animate-in fade-in slide-in-from-top-4 duration-200">
-          <nav className="flex flex-col p-6 gap-4">
-            {navigation.map((item) => {
-              const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setIsOpen(false)}
-                  className={`text-lg transition-colors hover:text-primary py-2 border-b border-border/50 ${
-                    isActive ? "font-bold text-primary" : "font-medium text-foreground/60"
-                  }`}
-                >
-                  {item.name}
-                </Link>
-              )
-            })}
-          </nav>
+        <div 
+          className="fixed left-0 right-0 top-16 h-[calc(100vh-4rem)] z-50 bg-black/20 backdrop-blur-sm md:hidden animate-in fade-in duration-200"
+          onClick={() => setIsOpen(false)}
+        >
+          <div 
+            className="bg-white border-b shadow-lg animate-in slide-in-from-top-4 duration-200 max-h-full overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <nav className="flex flex-col p-6 gap-4">
+              {navigation.map((item) => {
+                const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsOpen(false)}
+                    className={`text-lg transition-colors hover:text-primary py-2 border-b border-border/50 ${
+                      isActive ? "font-bold text-primary" : "font-medium text-foreground/60"
+                    }`}
+                  >
+                    {item.name}
+                  </Link>
+                )
+              })}
+            </nav>
+          </div>
         </div>
       )}
     </>

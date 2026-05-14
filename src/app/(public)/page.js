@@ -47,11 +47,11 @@ const fmtDate = (d) =>
 
 // [S2-2] Partners — thay bằng logo thật sau
 const PARTNERS = [
-  { name: "Bộ KH&CN" },
-  { name: "Vietnam Ventures" },
-  { name: "National iHub" },
-  { name: "Mekong Capital" },
-  { name: "Do Ventures" },
+  { name: "Bộ KH và Công Nghệ" },
+  { name: "VNEI - Mạng lưới Đổi mới sáng tạo" },
+  { name: "Sở KHCN - Hải Phòng" },
+  { name: "ISC - Trung tâm Phát triển KHCN và Đổi mới sáng tạo" },
+  // { name: "Do Ventures" },
 ];
 
 // [S2-4] Testimonials
@@ -182,16 +182,16 @@ export default async function HomePage() {
         </div>
 
         <Container className="relative">
-          <div className="grid lg:grid-cols-2 gap-12 items-center py-24 lg:py-32">
+          <div className="flex flex-col items-center py-24 lg:py-32 text-center max-w-4xl mx-auto">
             {/* ── Text column ── */}
-            <div>
+            <div className="flex flex-col items-center">
               {/* [S1-3] aria-hidden cho decorative pulse dot */}
               <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-4 py-2 text-sm font-medium mb-8">
                 <span
                   className="w-2 h-2 rounded-full bg-green-400 animate-pulse"
                   aria-hidden="true"
                 />
-                Đang nhận hồ sơ chương trình 2025
+                Đang nhận hồ sơ chương trình 2026
               </div>
 
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-6">
@@ -203,14 +203,14 @@ export default async function HomePage() {
               </h1>
 
               {/* [S1-2] Fix contrast — text-white/75 thay text-blue-100 */}
-              <p className="text-white/75 text-lg md:text-xl leading-relaxed mb-10 max-w-lg">
+              <p className="text-white/75 text-lg md:text-xl leading-relaxed mb-10 max-w-2xl mx-auto">
                 SCEI đồng hành cùng startup Việt Nam từ giai đoạn ý tưởng đến
                 tăng trưởng — thông qua ươm tạo, tăng tốc và kết nối hệ sinh
                 thái đầu tư.
               </p>
 
               {/* [S1-1] Fix buttons — dùng variant đúng */}
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-wrap justify-center gap-4">
                 <Link href="/programs">
                   <Button
                     size="lg"
@@ -232,7 +232,7 @@ export default async function HomePage() {
               </div>
 
               {/* Trust badges */}
-              <div className="mt-10 flex items-center gap-6 text-sm text-white/60">
+              <div className="mt-10 flex flex-wrap justify-center items-center gap-6 text-sm text-white/60">
                 <span className="flex items-center gap-1.5">
                   <span className="text-green-400 font-bold text-base">✓</span>{" "}
                   Miễn phí tham gia
@@ -245,65 +245,6 @@ export default async function HomePage() {
                   <span className="text-green-400 font-bold text-base">✓</span>{" "}
                   Kết nối đầu tư
                 </span>
-              </div>
-            </div>
-
-            {/* ── Image column ── */}
-            <div className="hidden lg:block relative">
-              {/* Main image */}
-              <div className="relative h-110 rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10">
-                <Image
-                  src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&h=600&fit=crop&q=85"
-                  alt="Startup team làm việc tại SCEI — thay bằng ảnh thực tế của trung tâm"
-                  fill
-                  className="object-cover"
-                  priority
-                  sizes="(max-width: 768px) 0vw, 50vw"
-                />
-                {/* Image overlay gradient */}
-                <div className="absolute inset-0 bg-linear-to-t from-blue-900/40 via-transparent to-transparent" />
-              </div>
-
-              {/* Floating stat card */}
-              <div className="absolute -bottom-5 -left-6 bg-white rounded-2xl shadow-xl p-4 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                  <TrendingUp className="w-5 h-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500 font-medium">
-                    Startup gọi vốn thành công
-                  </p>
-                  <p className="text-lg font-extrabold text-gray-900">
-                    87% <span className="text-green-500 text-sm">↑ 2024</span>
-                  </p>
-                </div>
-              </div>
-
-              {/* Floating avatar stack */}
-              <div className="absolute -top-4 -right-4 bg-white rounded-2xl shadow-xl p-3 flex items-center gap-2">
-                <div className="flex -space-x-2">
-                  {[
-                    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=32&h=32&fit=crop",
-                    "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=32&h=32&fit=crop",
-                    "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=32&h=32&fit=crop",
-                  ].map((src, i) => (
-                    <div
-                      key={i}
-                      className="w-8 h-8 rounded-full overflow-hidden ring-2 ring-white"
-                    >
-                      <Image
-                        src={src}
-                        alt="Startup founder"
-                        width={32}
-                        height={32}
-                        className="object-cover"
-                      />
-                    </div>
-                  ))}
-                </div>
-                <p className="text-xs text-gray-600 font-medium pr-1">
-                  200+ alumni
-                </p>
               </div>
             </div>
           </div>
@@ -335,27 +276,32 @@ export default async function HomePage() {
       </div>
 
       {/* ══════════════════════════════════════════════════════════
-          [S1-4] STATS — semantic dl/dt/dd
+          [S1-4] PARTNER LOGOS GRID (Thay cho Stats)
           ══════════════════════════════════════════════════════════ */}
       <div className="bg-white border-b border-gray-100">
         <Container>
-          <dl className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-gray-100">
-            {STATS.map(({ icon: Icon, value, label }) => (
+          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-gray-100">
+            {[
+              { src: "/logos/Bo-KH-CN.webp", alt: "Bộ KH và Công Nghệ" },
+              { src: "/logos/VNEI.webp", alt: "VNEI - Mạng lưới Đổi mới sáng tạo" },
+              { src: "/logos/So-KH-CN-HP.webp", alt: "Sở KHCN - Hải Phòng" },
+              { src: "/logos/ISC.webp", alt: "ISC - Trung tâm Phát triển KHCN và Đổi mới sáng tạo" },
+            ].map((logo, idx) => (
               <div
-                key={label}
-                className="flex flex-col items-center py-8 px-6 text-center"
+                key={idx}
+                className="flex flex-col items-center justify-center py-10 px-6"
               >
-                <Icon
-                  className="w-6 h-6 text-primary mb-3"
-                  aria-hidden="true"
+                <Image
+                  src={logo.src}
+                  alt={logo.alt}
+                  width={200}
+                  height={80}
+                  className="max-h-16 w-auto object-contain transition-transform duration-300 hover:scale-105"
+                  unoptimized // Bật unoptimized nếu không cần Next.js tối ưu hình local nữa, hoặc tắt đi nếu muốn
                 />
-                <dd className="text-3xl font-extrabold text-gray-900 mb-1">
-                  {value}
-                </dd>
-                <dt className="text-sm text-gray-500">{label}</dt>
               </div>
             ))}
-          </dl>
+          </div>
         </Container>
       </div>
 
