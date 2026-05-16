@@ -59,32 +59,29 @@ const TESTIMONIALS = [
   {
     quote:
       "SCEI không chỉ cho chúng tôi văn phòng hay vốn — họ kết nối chúng tôi với đúng người vào đúng thời điểm. Chương trình acceleration đã thay đổi hoàn toàn cách chúng tôi nhìn nhận thị trường.",
-    name: "Nguyễn Minh Khoa",
-    title: "CEO & Co-founder",
-    company: "FinEdu Technology",
-    stage: "Series A — $2.1M",
-    avatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&q=80",
+    name: "Phạm Văn Hoàng",
+    title: "Sinh viên ngành CNTT",
+    company: "Trường Đại học Quản lý và Công nghệ Hải Phòng",
+    stage: ".",
+    avatar: "/images/testimonials/2512101067.jpg",
   },
   {
     quote:
       "Mentor network của SCEI cực kỳ chất lượng. Chỉ trong 3 tháng incubation, chúng tôi đã hoàn thiện product-market fit và tìm được 2 enterprise clients đầu tiên nhờ giới thiệu từ mentor.",
     name: "Trần Thị Lan Anh",
-    title: "Founder",
-    company: "AgriSmart Vietnam",
-    stage: "Pre-seed — $450K",
-    avatar:
-      "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop&q=80",
+    title: "Sinh viên ngành Quản trị Kinh doanh",
+    company: "Trường Đại học Quản lý và Công nghệ Hải Phòng",
+    stage: ".",
+    avatar: "/images/testimonials/2512400023.jpg",
   },
   {
     quote:
       "Môi trường tại SCEI rất đặc biệt — bạn được bao quanh bởi những người cùng chí hướng, cùng đốt lửa. Coworking space và cộng đồng startup ở đây giúp chúng tôi vượt qua giai đoạn khó nhất.",
-    name: "Lê Hoàng Phúc",
-    title: "CTO & Co-founder",
-    company: "EduTech Hub",
-    stage: "Seed — $800K",
-    avatar:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&q=80",
+    name: "Nguyễn Trung Kiên",
+    title: "Sinh viên ngành Ngôn ngữ Anh - Anh",
+    company: "Trường Đại học Quản lý và Công nghệ Hải Phòng",
+    stage: ".",
+    avatar: "/images/testimonials/2512751220.jpg",
   },
 ];
 

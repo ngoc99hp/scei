@@ -69,8 +69,8 @@ export async function POST(req) {
          is_published, is_featured, display_order)
       VALUES
         (${d.name}, ${d.slug}, ${d.type}::"ProgramType", ${d.status}::"ProgramStatus",
-         ${d.shortDesc || null}, ${d.description || null}, ${d.content || null},
-         ${d.benefits  || null}, ${d.requirements || null},
+         ${d.shortDesc ?? ""}, ${d.description ?? ""}, ${d.content ?? ""},
+         ${d.benefits?.length ? d.benefits : null}, ${d.requirements?.length ? d.requirements : null},
          ${d.coverImage    || null},
          ${d.startDate     || null}, ${d.endDate || null}, ${d.applyDeadline || null},
          ${d.maxApplicants ?? null},

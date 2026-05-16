@@ -63,7 +63,7 @@ export default function MentorEditPage() {
           slug:         m.slug          ?? "",
           title:        m.title         ?? "",
           organization: m.organization  ?? "",
-          expertise:    m.expertise     ?? "",
+          expertise:    Array.isArray(m.expertise) ? m.expertise.join(", ") : (m.expertise ?? ""),
           bio:          m.bio           ?? "",
           shortBio:     m.short_bio     ?? "",
           email:        m.email         ?? "",

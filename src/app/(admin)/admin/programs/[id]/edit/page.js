@@ -5,7 +5,7 @@ import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
 import Link from "next/link"
-import { ExternalLink } from "lucide-react"
+import { ExternalLink, Plus, X } from "lucide-react"
 import {
   PageHeader, FormSection, Field, inputCls, SaveBar,
 } from "@/components/admin/admin-ui"
@@ -44,7 +44,7 @@ const INIT = {
   name: "", slug: "", type: "INCUBATION", status: "DRAFT",
   shortDesc: "", description: "", content: "",
   coverImage: "",
-  benefits: "", requirements: "",
+  benefits: [""], requirements: [""],
   startDate: "", endDate: "", applyDeadline: "",
   maxApplicants: "",
   tags: "",
@@ -77,8 +77,8 @@ export default function ProgramEditPage() {
           description:   p.description    ?? "",
           content:       p.content        ?? "",
           coverImage:    p.cover_image    ?? "",
-          benefits:      p.benefits       ?? "",
-          requirements:  p.requirements   ?? "",
+          benefits:      Array.isArray(p.benefits)     && p.benefits.length     ? p.benefits     : [""],
+          requirements:  Array.isArray(p.requirements) && p.requirements.length ? p.requirements : [""],
           startDate:     toDate(p.start_date),
           endDate:       toDate(p.end_date),
           applyDeadline: toDate(p.apply_deadline),
@@ -116,8 +116,8 @@ export default function ProgramEditPage() {
       description:   fields.description,
       content:       fields.content,
       coverImage:    fields.coverImage,
-      benefits:      fields.benefits,
-      requirements:  fields.requirements,
+      benefits:      fields.benefits.filter(Boolean),
+      requirements:  fields.requirements.filter(Boolean),
       startDate:     fields.startDate     || null,
       endDate:       fields.endDate       || null,
       applyDeadline: fields.applyDeadline || null,
@@ -239,17 +239,19 @@ export default function ProgramEditPage() {
           </FormSection>
 
           {/* Quyền lợi & Yêu cầu */}
-          <FormSection title="Quyền lợi & Yêu cầu" description="Hiển thị trong trang đăng ký — dùng plain text hoặc danh sách đơn giản">
-            <Field label="Quyền lợi tham gia (benefits)" hint="Mỗi dòng một quyền lợi, hoặc viết tự do">
-              <textarea name="benefits" value={fields.benefits} onChange={handleChange}
-                rows={4} className={`${inputCls} resize-none`}
-                placeholder={"- Nhận hỗ trợ tài chính lên đến 50 triệu đồng\n- Kết nối với mạng lưới 200+ mentor\n- Văn phòng làm việc miễn phí 6 tháng"} />
-            </Field>
-            <Field label="Yêu cầu đăng ký (requirements)" hint="Điều kiện để tham gia chương trình">
-              <textarea name="requirements" value={fields.requirements} onChange={handleChange}
-                rows={4} className={`${inputCls} resize-none`}
-                placeholder={"- Startup giai đoạn pre-seed hoặc seed\n- Ít nhất 2 thành viên founding team\n- Có MVP hoặc prototype"} />
-            </Field>
+          <FormSection title="Quyền lợi & Yêu cầu" description="Hiển thị trong trang đăng ký — mỗi mục một dòng">
+            <ArrayField
+              label="Quyền lợi tham gia"
+              values={fields.benefits}
+              onChange={v => set("benefits", v)}
+              placeholder="Ví dụ: Kết nối mạng lưới 200+ mentor"
+            />
+            <ArrayField
+              label="Yêu cầu đăng ký"
+              values={fields.requirements}
+              onChange={v => set("requirements", v)}
+              placeholder="Ví dụ: Startup giai đoạn pre-seed hoặc seed"
+            />
           </FormSection>
 
           {/* Nội dung chi tiết */}
@@ -266,5 +268,45 @@ export default function ProgramEditPage() {
 
       <SaveBar saving={saving} success={success} error={error} onSave={handleSave} />
     </div>
+  )
+}
+
+function ArrayField({ label, values, onChange, placeholder }) {
+  const update = (i, val) => onChange(values.map((v, idx) => idx === i ? val : v))
+  const remove = (i) => onChange(values.filter((_, idx) => idx !== i))
+  const add    = () => onChange([...values, ""])
+
+  return (
+    <Field label={label}>
+      <div className="space-y-2">
+        {values.map((v, i) => (
+          <div key={i} className="flex gap-2 items-center">
+            <input
+              value={v}
+              onChange={e => update(i, e.target.value)}
+              className={`${inputCls} flex-1`}
+              placeholder={placeholder}
+            />
+            {values.length > 1 && (
+              <button
+                type="button"
+                onClick={() => remove(i)}
+                className="shrink-0 h-9 w-9 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-destructive hover:border-destructive transition-colors"
+                aria-label="Xóa mục"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={add}
+          className="flex items-center gap-1.5 text-sm text-primary hover:opacity-75 transition-opacity"
+        >
+          <Plus size={14} /> Thêm mục
+        </button>
+      </div>
+    </Field>
   )
 }

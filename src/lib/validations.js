@@ -68,8 +68,8 @@ export const programSchema = z.object({
   shortDesc:     z.string().max(500).optional().or(z.literal("")),
   description:   z.string().optional().or(z.literal("")),
   content:       z.string().optional().or(z.literal("")),
-  benefits:      z.string().optional().or(z.literal("")),  // textarea, string thuần
-  requirements:  z.string().optional().or(z.literal("")),  // textarea, string thuần
+  benefits:      z.array(z.string()).optional().default([]),
+  requirements:  z.array(z.string()).optional().default([]),
   maxApplicants: z.coerce.number().int().positive().optional().nullable(),
   startDate:     z.string().optional().or(z.literal("")),  // "YYYY-MM-DD"
   endDate:       z.string().optional().or(z.literal("")),

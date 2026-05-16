@@ -60,6 +60,10 @@ export async function POST(req) {
   const exist = await sql`SELECT id FROM mentors WHERE slug = ${d.slug} LIMIT 1`
   if (exist[0]) return NextResponse.json({ error: "Slug đã tồn tại" }, { status: 422 })
 
+  const expertiseTags = d.expertise
+    ? d.expertise.split(",").map(s => s.trim()).filter(Boolean)
+    : null
+
   try {
     const rows = await sql`
       INSERT INTO mentors
@@ -67,9 +71,9 @@ export async function POST(req) {
          email, linkedin_url, facebook_url, website, years_exp, avatar,
          tags, status, is_published, is_featured, display_order)
       VALUES
-        (${d.name}, ${d.slug}, ${d.title || null}, ${d.organization || null},
-         ${d.expertise || null},
-         ${d.bio || null}, ${d.shortBio || null},
+        (${d.name}, ${d.slug}, ${d.title ?? ""}, ${d.organization ?? ""},
+         ${expertiseTags},
+         ${d.bio ?? ""}, ${d.shortBio ?? ""},
          ${d.email || null}, ${d.linkedinUrl || null}, ${d.facebookUrl || null},
          ${d.website || null}, ${d.yearsExp ?? null}, ${d.avatar || null},
          ${d.tags}, ${d.status}::"MentorStatus",

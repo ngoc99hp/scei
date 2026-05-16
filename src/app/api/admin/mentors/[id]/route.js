@@ -38,16 +38,20 @@ export async function PATCH(req, { params }) {
   const current  = await sql`SELECT avatar FROM mentors WHERE id = ${id} LIMIT 1`
   const oldAvatar = current[0]?.avatar ?? null
 
+  const expertiseTags = d.expertise
+    ? d.expertise.split(",").map(s => s.trim()).filter(Boolean)
+    : null
+
   try {
     await sql`
       UPDATE mentors SET
         name         = ${d.name},
         slug         = ${d.slug},
-        title        = ${d.title        ?? null},
-        organization = ${d.organization ?? null},
-        expertise    = ${d.expertise    ?? null},
-        bio          = ${d.bio          ?? null},
-        short_bio    = ${d.shortBio     ?? null},
+        title        = ${d.title        ?? ""},
+        organization = ${d.organization ?? ""},
+        expertise    = ${expertiseTags},
+        bio          = ${d.bio          ?? ""},
+        short_bio    = ${d.shortBio     ?? ""},
         email        = ${d.email        ?? null},
         linkedin_url = ${d.linkedinUrl  ?? null},
         facebook_url = ${d.facebookUrl  ?? null},

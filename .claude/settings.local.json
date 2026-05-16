@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"e:\\\\Antigravity\\\\scei\" -Force)",
+      "Bash(Select-Object -Property Name, PSIsContainer)",
+      "Bash(Format-Table -AutoSize)",
+      "Bash(npm run *)",
+      "Bash(Get-ChildItem -Path \"e:\\\\Antigravity\\\\scei\\\\src\\\\app\\\\\\(admin\\)\\\\admin\" -Recurse -Force)",
+      "Bash(Select-Object FullName)"
+    ]
+  }
+}
