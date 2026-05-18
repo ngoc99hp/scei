@@ -68,7 +68,7 @@ const TESTIMONIALS = [
   {
     quote:
       "Mentor network của SCEI cực kỳ chất lượng. Chỉ trong 3 tháng incubation, chúng tôi đã hoàn thiện product-market fit và tìm được 2 enterprise clients đầu tiên nhờ giới thiệu từ mentor.",
-    name: "Trần Thị Lan Anh",
+    name: "Phạm Thanh Vân",
     title: "Sinh viên ngành Quản trị Kinh doanh",
     company: "Trường Đại học Quản lý và Công nghệ Hải Phòng",
     stage: ".",

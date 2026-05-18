@@ -22,30 +22,67 @@ export const metadata = {
 
 const TEAM_MEMBERS = [
   {
-    name:  "Nguyễn Văn A",
+    name: "Trần Hữu Trung",
     title: "Giám đốc",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=256&h=256&fit=crop&crop=face",
-    bio:   "10 năm kinh nghiệm trong hệ sinh thái khởi nghiệp.",
+    image: "/images/testimonials/tht.jpg",
+    bio: "-",
   },
   {
-    name:  "Trần Thị B",
+    name: "Đỗ Văn Tuyên",
     title: "Phó Giám đốc",
-    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=256&h=256&fit=crop&crop=face",
-    bio:   "Chuyên gia về đầu tư mạo hiểm và tăng tốc startup.",
+    image: "/images/testimonials/dvt.jpg",
+    bio: "-",
   },
   {
-    name:  "Lê Văn C",
-    title: "Trưởng phòng Chương trình",
-    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=256&h=256&fit=crop&crop=face",
-    bio:   "Thiết kế và vận hành các chương trình hỗ trợ startup.",
+    name: "Nguyễn Thế Hùng",
+    title: "CEO",
+    image: "/images/testimonials/nth.png",
+    bio: "-",
   },
+  {
+    name: "Vũ Trọng Chiến",
+    title: "Giảng viên khoa CNTT",
+    image: "/images/testimonials/vtc.jpg",
+    bio: "-",
+  },
+  {
+    name: "Phạm Văn Hồi",
+    title: "Chuyên gia kinh tế - mentor",
+    image: "/images/testimonials/pvh.jpg",
+    bio: "-",
+  },
+  {
+    name: "Nguyễn Thị Hoàng Đan",
+    title: "Trưởng khoa QTKD",
+    image: "/images/testimonials/nthd.jpg",
+    bio: "-",
+  },
+  {
+    name: "PGS.TS. Nguyễn Đại An",
+    title: "Trợ lý chủ tịch Hội đồng trường",
+    image: "/images/testimonials/nda.png",
+    bio: "-",
+  },
+  {
+    name: "Lê Đình Mạnh",
+    title: "Giám đốc - Công ty TNHH tư vấn quản lý và đào tạo Lê Mạnh",
+    image: "/images/testimonials/ldm.jpg",
+    bio: "-",
+  },
+  {
+    name: "Phan Giang Sơn",
+    title: "Trưởng ban quản lý dự án Waterfront City",
+    image: "/images/testimonials/pgs.jpg",
+    bio: "-",
+  },
+
 ]
 
 const STATS = [
-  { label: "Startup được hỗ trợ",   value: "200+"  },
-  { label: "Chương trình triển khai", value: "50+"   },
-  { label: "Mentor & Chuyên gia",    value: "100+"  },
-  { label: "Năm hoạt động",          value: "8"     },
+  { label: "Startup được hỗ trợ", value: "200+" },
+  { label: "Chương trình triển khai", value: "50+" },
+  { label: "Mentor & Chuyên gia", value: "100+" },
+  { label: "Năm hoạt động", value: "8" },
 ]
 
 export default function AboutPage() {
@@ -109,7 +146,7 @@ export default function AboutPage() {
               fill
               className="object-cover"
               sizes="(max-width: 1024px) 100vw, 50vw"
-              // Không cần priority — below the fold
+            // Không cần priority — below the fold
             />
           </div>
         </div>

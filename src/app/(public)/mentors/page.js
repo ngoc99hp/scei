@@ -137,7 +137,7 @@ function MentorCard({ mentor }) {
             src={mentor.avatar}
             alt={mentor.name}
             fill
-            className="object-cover grayscale group-hover:grayscale-0 transition-all duration-500 scale-105 group-hover:scale-110"
+            className="object-cover transition-all duration-500 scale-105 group-hover:scale-110"
             sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"
           />
         ) : (
