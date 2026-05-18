@@ -258,7 +258,7 @@ export default function MentorEditPage() {
 
           <FormSection title="Liên hệ & Mạng xã hội">
             <div className="grid grid-cols-2 gap-4">
-              <Field label="Email (nội bộ — không hiển thị)">
+              <Field label="Email (hiển thị công khai)">
                 <input name="email" type="email" value={fields.email} onChange={handleChange} className={inputCls} />
               </Field>
               <Field label="Website cá nhân">

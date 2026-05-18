@@ -68,11 +68,11 @@ export async function POST(req) {
          founder_name, founder_email, founder_linkedin,
          linkedin_url, facebook_url, tags, is_published, is_featured, display_order)
       VALUES
-        (${d.name}, ${d.slug}, ${d.tagline || null}, ${d.description || null},
-         ${d.website || null}, ${d.industry || null},
+        (${d.name}, ${d.slug}, ${d.tagline ?? ""}, ${d.description ?? ""},
+         ${d.website       || null}, ${d.industry ?? ""},
          ${d.stage}::"StartupStage", ${d.status}::"StartupStatus",
          ${d.foundedYear    ?? null}, ${d.teamSize       ?? null},
-         ${d.fundingRaised  ?? null}, ${d.coverImage     || null},
+         ${d.fundingRaised  || null}, ${d.coverImage     || null},
          ${d.logo           || null}, ${d.founderName    || null},
          ${d.founderEmail   || null}, ${d.founderLinkedin || null},
          ${d.linkedinUrl    || null}, ${d.facebookUrl    || null},

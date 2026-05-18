@@ -35,6 +35,10 @@ export default async function MentorDetailPage({ params }) {
   const m = await getMentorBySlug(slug)
   if (!m) notFound()
 
+  const expertise = Array.isArray(m.expertise)
+    ? m.expertise
+    : (m.expertise ? String(m.expertise).split(",").map(s => s.trim()).filter(Boolean) : [])
+
   return (
     <>
     <Section className="py-12">
@@ -101,11 +105,11 @@ export default async function MentorDetailPage({ params }) {
               <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{m.bio}</p>
             </div>
 
-            {m.expertise?.length > 0 && (
+            {expertise.length > 0 && (
               <div>
                 <h2 className="text-xl font-bold mb-3">Chuyên môn</h2>
                 <div className="flex flex-wrap gap-2">
-                  {m.expertise.map(e => (
+                  {expertise.map(e => (
                     <span key={e} className="rounded-full bg-primary/10 text-primary px-3 py-1.5 text-sm font-medium">
                       {e}
                     </span>
@@ -135,7 +139,7 @@ export default async function MentorDetailPage({ params }) {
       url={`${BASE}/mentors/${slug}`}
       imageUrl={m.avatar}
       jobTitle={m.title}
-      sameAs={[m.linkedin, m.website].filter(Boolean)}
+      sameAs={[m.linkedin_url, m.website].filter(Boolean)}
     />
     <BreadcrumbJsonLd items={[
       { name: "Trang chủ", href: "/" },

@@ -129,6 +129,10 @@ export default async function MentorsPage({ searchParams }) {
 
 // Pure Server Component — không có event handler
 function MentorCard({ mentor }) {
+  const expertise = Array.isArray(mentor.expertise)
+    ? mentor.expertise
+    : (mentor.expertise ? String(mentor.expertise).split(",").map(s => s.trim()).filter(Boolean) : [])
+
   return (
     <Card className="group overflow-hidden border-none shadow-xl hover:shadow-2xl transition-all duration-300">
       <div className="relative h-64 overflow-hidden bg-muted">
@@ -166,10 +170,10 @@ function MentorCard({ mentor }) {
       </div>
       <div className="p-8">
         <div className="flex flex-wrap gap-1.5 mb-4">
-          {mentor.expertise?.slice(0, 2).map(e => (
+          {expertise.slice(0, 2).map(e => (
             <span key={e} className="rounded-full bg-primary/10 text-primary px-2.5 py-0.5 text-xs font-medium">{e}</span>
           ))}
-          {mentor.expertise?.length > 2 && <span className="text-xs text-muted-foreground">+{mentor.expertise.length - 2}</span>}
+          {expertise.length > 2 && <span className="text-xs text-muted-foreground">+{expertise.length - 2}</span>}
         </div>
         <h3 className="text-xl font-bold mb-1 group-hover:text-primary transition-colors">
           <Link href={`/mentors/${mentor.slug}`}>{mentor.name}</Link>

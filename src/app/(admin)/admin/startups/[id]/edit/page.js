@@ -71,11 +71,11 @@ export default function StartupEditPage() {
           description:     s.description      ?? "",
           website:         s.website          ?? "",
           industry:        s.industry         ?? "",
-          stage:           s.stage            ?? "IDEA",
+          stage:           ({ SEED: "EARLY", SERIES_A: "GROWTH" }[s.stage] ?? s.stage) ?? "IDEA",
           status:          s.status           ?? "INCUBATING",
           foundedYear:     s.founded_year?.toString()  ?? "",
           teamSize:        s.team_size?.toString()     ?? "",
-          fundingRaised:   s.funding_raised            ?? "",
+          fundingRaised:   s.funding_raised?.toString()  ?? "",
           logo:            s.logo             ?? "",
           coverImage:      s.cover_image      ?? "",
           founderName:     s.founder_name     ?? "",
@@ -136,8 +136,12 @@ export default function StartupEditPage() {
     try {
       const res  = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
       const data = await res.json()
-      if (!res.ok) setError(data.error || "Lưu thất bại")
-      else {
+      if (!res.ok) {
+        const detail = data.details
+          ? " — " + Object.entries(data.details).map(([k, v]) => `${k}: ${v.join(", ")}`).join(" | ")
+          : ""
+        setError((data.error || "Lưu thất bại") + detail)
+      } else {
         setSuccess(true); setTimeout(() => setSuccess(false), 3000)
         if (isNew && data.startup?.id) router.replace(`/admin/startups/${data.startup.id}/edit`)
       }

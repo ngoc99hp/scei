@@ -4,6 +4,7 @@ import sql                 from "@/lib/db"
 import { requireApiAdmin } from "@/lib/auth"
 import { mentorSchema }    from "@/lib/validations"
 import { logger }          from "@/lib/logger"
+import { revalidatePath }  from "next/cache"
 
 export async function GET(req) {
   const auth = await requireApiAdmin()
@@ -80,6 +81,7 @@ export async function POST(req) {
          ${d.isPublished}, ${d.isFeatured}, ${d.displayOrder})
       RETURNING id, slug
     `
+    revalidatePath("/mentors")
     return NextResponse.json({ success: true, mentor: rows[0] }, { status: 201 })
   } catch (err) {
     logger.error("POST /api/admin/mentors failed", err)

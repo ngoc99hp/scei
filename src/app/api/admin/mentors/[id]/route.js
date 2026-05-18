@@ -5,6 +5,7 @@ import { requireApiAdmin }           from "@/lib/auth"
 import { mentorSchema }              from "@/lib/validations"
 import { logger }                    from "@/lib/logger"
 import { deleteImage, extractPublicId } from "@/lib/cloudinary"
+import { revalidatePath } from "next/cache"
 
 export async function GET(req, { params }) {
   const auth = await requireApiAdmin()
@@ -35,8 +36,9 @@ export async function PATCH(req, { params }) {
 
   const d = parsed.data
 
-  const current  = await sql`SELECT avatar FROM mentors WHERE id = ${id} LIMIT 1`
+  const current  = await sql`SELECT avatar, slug FROM mentors WHERE id = ${id} LIMIT 1`
   const oldAvatar = current[0]?.avatar ?? null
+  const oldSlug   = current[0]?.slug   ?? null
 
   const expertiseTags = d.expertise
     ? d.expertise.split(",").map(s => s.trim()).filter(Boolean)
@@ -72,6 +74,10 @@ export async function PATCH(req, { params }) {
       if (pid) deleteImage(pid).catch(() => {})
     }
 
+    revalidatePath("/mentors")
+    revalidatePath(`/mentors/${d.slug}`)
+    if (oldSlug && oldSlug !== d.slug) revalidatePath(`/mentors/${oldSlug}`)
+
     return NextResponse.json({ success: true })
   } catch (err) {
     logger.error("PATCH /api/admin/mentors/[id] failed", err, { id })
@@ -85,8 +91,9 @@ export async function DELETE(req, { params }) {
 
   const { id } = await params
 
-  const current = await sql`SELECT avatar FROM mentors WHERE id = ${id} LIMIT 1`
+  const current = await sql`SELECT avatar, slug FROM mentors WHERE id = ${id} LIMIT 1`
   const avatar  = current[0]?.avatar ?? null
+  const slug    = current[0]?.slug   ?? null
 
   await sql`DELETE FROM mentors WHERE id = ${id}`
 
@@ -94,6 +101,9 @@ export async function DELETE(req, { params }) {
     const pid = extractPublicId(avatar)
     if (pid) deleteImage(pid).catch(() => {})
   }
+
+  revalidatePath("/mentors")
+  if (slug) revalidatePath(`/mentors/${slug}`)
 
   return NextResponse.json({ success: true })
 }
