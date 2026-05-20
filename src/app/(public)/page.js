@@ -251,7 +251,7 @@ export default async function HomePage() {
       {/* ══════════════════════════════════════════════════════════
           [S2-2] PARTNER LOGO STRIP
           ══════════════════════════════════════════════════════════ */}
-      <div className="bg-white border-b border-gray-100 py-8">
+      {/* <div className="bg-white border-b border-gray-100 py-8">
         <Container>
           <p className="text-center text-xs font-semibold uppercase tracking-widest text-gray-400 mb-6">
             Được hỗ trợ bởi các đối tác chiến lược
@@ -270,12 +270,12 @@ export default async function HomePage() {
             ))}
           </div>
         </Container>
-      </div>
+      </div> */}
 
       {/* ══════════════════════════════════════════════════════════
           [S1-4] PARTNER LOGOS GRID (Thay cho Stats)
           ══════════════════════════════════════════════════════════ */}
-      <div className="bg-white border-b border-gray-100">
+      {/* <div className="bg-white border-b border-gray-100">
         <Container>
           <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-gray-100">
             {[
@@ -300,7 +300,7 @@ export default async function HomePage() {
             ))}
           </div>
         </Container>
-      </div>
+      </div> */}
 
       {/* ══════════════════════════════════════════════════════════
           [S2-3] ABOUT SECTION — 2 cột text + ảnh
